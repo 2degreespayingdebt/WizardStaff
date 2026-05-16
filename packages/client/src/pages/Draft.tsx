@@ -196,9 +196,9 @@ export default function Draft() {
       </header>
       
       <div className="flex h-[calc(100vh-64px)]">
-        {/* Left Panel - Draft Board */}
+        {/* Left Panel - Picks Made */}
         <div className="w-1/3 border-r border-gray-700 p-4 overflow-y-auto">
-          <h3 className="font-semibold mb-4">Draft Board</h3>
+          <h3 className="font-semibold mb-4">📋 Picks Made</h3>
           
           <div className="space-y-1">
             {picks.map((pick) => (
