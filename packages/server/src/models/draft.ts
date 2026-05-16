@@ -3,6 +3,7 @@ import { query, getClient } from '../config/db.js';
 export interface Draft {
   id: string;
   leagueId: string;
+  seasonId: string | null;
   status: 'scheduled' | 'active' | 'paused' | 'completed';
   currentPick: number;
   currentRound: number;
@@ -44,6 +45,27 @@ export async function findDraftByLeague(leagueId: string): Promise<Draft | null>
     [leagueId]
   );
   return result.rows[0] ? mapDraft(result.rows[0]) : null;
+}
+
+export async function findDraftBySeason(seasonId: string): Promise<Draft | null> {
+  const result = await query(
+    'SELECT * FROM drafts WHERE season_id = $1 ORDER BY created_at DESC LIMIT 1',
+    [seasonId]
+  );
+  return result.rows[0] ? mapDraft(result.rows[0]) : null;
+}
+
+export async function createDraftForSeason(
+  leagueId: string,
+  seasonId: string,
+  teamIds: string[],
+  pickTimeSeconds = 120
+): Promise<Draft> {
+  const result = await query(
+    `INSERT INTO drafts (league_id, season_id, pick_time_seconds) VALUES ($1, $2, $3) RETURNING *`,
+    [leagueId, seasonId, pickTimeSeconds]
+  );
+  return mapDraft(result.rows[0]);
 }
 
 export async function startDraft(draftId: string, teamIds: string[]): Promise<Draft> {
@@ -235,12 +257,14 @@ function mapDraft(row: unknown): Draft {
   return {
     id: r.id,
     leagueId: r.league_id,
+    seasonId: r.season_id,
     status: r.status,
     currentPick: r.current_pick,
     currentRound: r.current_round,
     currentManagerId: r.current_manager_id,
     draftOrder: typeof r.draft_order === 'string' ? JSON.parse(r.draft_order) : r.draft_order,
     pickTimeSeconds: r.pick_time_seconds,
+    pausedAt: r.paused_at,
     startedAt: r.started_at,
     completedAt: r.completed_at,
     createdAt: r.created_at,

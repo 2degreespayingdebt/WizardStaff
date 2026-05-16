@@ -1,12 +1,20 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useDraftSocket } from '../hooks/useDraftSocket';
-import type { Player } from '../types';
+import { api } from '../services/api';
+import type { Player, Season, SeasonTeam } from '../types';
 
 export default function Draft() {
-  const { id } = useParams<{ id: string }>();
+  const { id: draftIdFromUrl } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { board, loading, makePick, pauseDraft, resumeDraft } = useDraftSocket({ draftId: id || null });
+  
+  // Season selection state
+  const [seasons, setSeasons] = useState<Season[]>([]);
+  const [selectedSeasonId, setSelectedSeasonId] = useState<string>('');
+  const [seasonTeams, setSeasonTeams] = useState<SeasonTeam[]>([]);
+  const [loadingSeasons, setLoadingSeasons] = useState(true);
+  
+  const { board, loading, makePick, pauseDraft, resumeDraft } = useDraftSocket({ draftId: draftIdFromUrl || null });
   
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -31,6 +39,50 @@ export default function Draft() {
   
   // Countdown timer - syncs when pick changes
   const [timeLeft, setTimeLeft] = useState(120);
+  
+  // Load seasons on mount
+  useEffect(() => {
+    async function loadSeasons() {
+      try {
+        // Get leagues first to find one with seasons
+        const leagues = await api.getLeagues();
+        if (leagues.length > 0) {
+          const leagueId = leagues[0].id;
+          const seasonsData = await api.getSeasons(leagueId);
+          setSeasons(seasonsData);
+          
+          // Auto-select active season if available
+          const activeSeason = seasonsData.find((s: Season) => s.isActive);
+          if (activeSeason) {
+            setSelectedSeasonId(activeSeason.id);
+            const teams = await api.getSeasonLeaderboard(activeSeason.id);
+            setSeasonTeams(teams);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load seasons:', err);
+      } finally {
+        setLoadingSeasons(false);
+      }
+    }
+    loadSeasons();
+  }, []);
+  
+  // Handle season selection
+  const handleSeasonSelect = async (seasonId: string) => {
+    setSelectedSeasonId(seasonId);
+    try {
+      // Load teams for this season
+      const teams = await api.getSeasonLeaderboard(seasonId);
+      setSeasonTeams(teams);
+      
+      // Get or create draft for this season
+      const { draftId } = await api.getOrCreateDraft(seasonId);
+      navigate(`/draft/${draftId}`, { replace: true });
+    } catch (err) {
+      console.error('Failed to start draft:', err);
+    }
+  };
   
   // Reset timer when pick changes
   useEffect(() => {
@@ -90,6 +142,21 @@ export default function Draft() {
               ← Back
             </button>
             <h1 className="text-lg font-bold">🍺 Live Draft</h1>
+            
+            {/* Season Selector */}
+            <select
+              value={selectedSeasonId}
+              onChange={(e) => handleSeasonSelect(e.target.value)}
+              disabled={loadingSeasons}
+              className="ml-4 bg-gray-700 border border-gray-600 rounded px-3 py-1 text-sm"
+            >
+              <option value="">Select a season...</option>
+              {seasons.map((season) => (
+                <option key={season.id} value={season.id}>
+                  {season.name} {season.isActive ? '(Active)' : ''}
+                </option>
+              ))}
+            </select>
             <Link to="/players/new" className="text-sm text-emerald-500 hover:text-emerald-400 ml-auto">
               + Create Custom Drinker
             </Link>
@@ -254,23 +321,32 @@ export default function Draft() {
           </div>
         </div>
         
-        {/* Right Panel - My Team */}
+        {/* Right Panel - Teams in Season */}
         <div className="w-1/3 border-l border-gray-700 p-4 overflow-y-auto">
-          <h3 className="font-semibold mb-4">🍺 My Drinker</h3>
+          <h3 className="font-semibold mb-4">🍺 Season Teams</h3>
           
-          {/* Make Pick Button */}
-          {isMyTurn && (
-            <div className="mb-4">
-              {selectedPlayer ? (
-                <button
-                  onClick={handleMakePick}
-                  disabled={loading}
-                  className="w-full btn-primary disabled:opacity-50"
+          {/* Show current teams in this season */}
+          {seasonTeams.length > 0 ? (
+            <div className="space-y-2">
+              {seasonTeams.map((team, index) => (
+                <div
+                  key={team.teamId}
+                  className="flex items-center justify-between p-2 bg-gray-800 rounded"
                 >
-                  {loading ? 'Selecting...' : `Draft ${selectedPlayer.name}`}
-                </button>
-              ) : (
-                <p className="text-center text-gray-400 text-sm">
+                  <span className="text-gray-400 w-6">#{index + 1}</span>
+                  <span className="font-medium">{team.teamName}</span>
+                  <span className="text-emerald-400 text-sm">
+                    {team.drinkCount} 🍺
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-400 text-sm">
+              {selectedSeasonId ? 'No teams in this season' : 'Select a season above'}
+            </p>
+          )}
+        </div>
                   Select a drinker to draft
                 </p>
               )}

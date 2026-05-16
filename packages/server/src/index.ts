@@ -8,8 +8,8 @@ import authRoutes from './routes/auth.js';
 import leagueRoutes from './routes/leagues.js';
 import playerRoutes from './routes/players.js';
 import { authenticateToken, AuthRequest } from './middleware/auth.js';
+import * as seasonModel from './models/season.js';
 import * as draftModel from './models/draft.js';
-import * as teamModel from './models/team.js';
 
 dotenv.config();
 
@@ -96,6 +96,39 @@ app.post('/api/drafts/:id/resume', authenticateToken, async (req, res) => {
     res.json({ draft });
   } catch (error) {
     console.error('Resume draft error:', error);
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+// Get or create draft for a season
+app.post('/api/drafts/season/:seasonId', authenticateToken, async (req, res) => {
+  try {
+    const seasonId = req.params.seasonId;
+    
+    // Check if draft exists for this season
+    let draft = await draftModel.findDraftBySeason(seasonId);
+    
+    if (!draft) {
+      // Create a new draft
+      const league = await seasonModel.findSeasonById(seasonId);
+      if (!league) {
+        return res.status(404).json({ error: 'Season not found' });
+      }
+      
+      // Get teams from season
+      const seasonTeams = await seasonModel.getSeasonTeams(seasonId);
+      const teamIds = seasonTeams.map(st => st.teamId);
+      
+      if (teamIds.length < 2) {
+        return res.status(400).json({ error: 'Need at least 2 teams to start a draft' });
+      }
+      
+      draft = await draftModel.createDraftForSeason(league.leagueId, seasonId, teamIds);
+    }
+    
+    res.json({ draftId: draft.id });
+  } catch (error) {
+    console.error('Get/Create draft error:', error);
     res.status(500).json({ error: (error as Error).message });
   }
 });

@@ -182,6 +182,13 @@ class ApiService {
       body: JSON.stringify({ change }),
     });
   }
+
+  // Get draft ID for a season (creates if not exists)
+  async getOrCreateDraft(seasonId: string): Promise<{ draftId: string }> {
+    return this.request<{ draftId: string }>(`/drafts/season/${seasonId}`, {
+      method: 'POST',
+    });
+  }
 }
 
 export const api = new ApiService();
