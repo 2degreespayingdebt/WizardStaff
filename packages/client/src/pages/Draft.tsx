@@ -6,7 +6,7 @@ import type { Player } from '../types';
 export default function Draft() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { board, loading, makePick } = useDraftSocket({ draftId: id || null });
+  const { board, loading, makePick, pauseDraft, resumeDraft } = useDraftSocket({ draftId: id || null });
   
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -30,16 +30,16 @@ export default function Draft() {
   }, [board?.availablePlayers, searchQuery]);
   
   // Countdown timer - syncs when pick changes
-  const [timeLeft, setTimeLeft] = useState(60);
+  const [timeLeft, setTimeLeft] = useState(120);
   
   // Reset timer when pick changes
   useEffect(() => {
     if (board?.draft) {
-      setTimeLeft(board.draft.pickTimeSeconds || 60);
+      setTimeLeft(board.draft.pickTimeSeconds || 120);
     }
   }, [board?.draft?.currentPick, board?.draft?.currentRound]);
   
-  // Countdown effect
+  // Countdown effect (pauses when draft is paused)
   useEffect(() => {
     if (!board?.draft || board.draft.status !== 'active') return;
     if (timeLeft <= 0) return;
@@ -102,9 +102,25 @@ export default function Draft() {
                 Round {draft.currentRound} • Pick {draft.currentPick}
               </p>
               <p className="font-bold text-emerald-500">
-                {isMyTurn ? "🎯 Your Turn!" : "Waiting..."}
+                {draft.status === 'paused' ? '⏸ Paused' : isMyTurn ? "🎯 Your Turn!" : "Waiting..."}
               </p>
             </div>
+            
+            {/* Pause/Resume Button */}
+            {draft.status !== 'completed' && (
+              <button
+                onClick={() => draft.status === 'paused' ? resumeDraft() : pauseDraft()}
+                disabled={loading}
+                className={`px-3 py-1 rounded text-sm ${
+                  draft.status === 'paused'
+                    ? 'bg-emerald-600 hover:bg-emerald-500'
+                    : 'bg-yellow-600 hover:bg-yellow-500'
+                }`}
+              >
+                {draft.status === 'paused' ? '▶ Resume' : '⏸ Pause'}
+              </button>
+            )}
+            
             <div className={`text-2xl font-mono ${timeLeft <= 10 ? 'text-red-500' : 'text-white'}`}>
               {timeLeft}s
             </div>

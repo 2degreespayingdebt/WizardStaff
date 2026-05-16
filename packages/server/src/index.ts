@@ -74,6 +74,32 @@ app.get('/api/drafts/:id/board', authenticateToken, async (req, res) => {
   }
 });
 
+app.post('/api/drafts/:id/pause', authenticateToken, async (req, res) => {
+  try {
+    const draft = await draftModel.pauseDraft(req.params.id);
+    io.to(req.params.id).emit('draft:paused', { draft });
+    const board = await draftModel.getDraftBoard(req.params.id);
+    io.to(req.params.id).emit('draft:state', board);
+    res.json({ draft });
+  } catch (error) {
+    console.error('Pause draft error:', error);
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+app.post('/api/drafts/:id/resume', authenticateToken, async (req, res) => {
+  try {
+    const draft = await draftModel.resumeDraft(req.params.id);
+    io.to(req.params.id).emit('draft:resumed', { draft });
+    const board = await draftModel.getDraftBoard(req.params.id);
+    io.to(req.params.id).emit('draft:state', board);
+    res.json({ draft });
+  } catch (error) {
+    console.error('Resume draft error:', error);
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
 // Socket.io for real-time draft
 io.on('connection', (socket) => {
   console.log('Client connected:', socket.id);

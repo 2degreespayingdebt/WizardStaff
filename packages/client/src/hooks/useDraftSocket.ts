@@ -27,6 +27,14 @@ export function useDraftSocket({ draftId, enabled = true }: UseDraftSocketProps)
       // State update comes via draft:state
     });
 
+    draftSocket.onDraftPaused(({ draft }) => {
+      setLoading(false);
+    });
+
+    draftSocket.onDraftResumed(({ draft }) => {
+      setLoading(false);
+    });
+
     draftSocket.onDraftError(({ error }) => {
       setError(error);
       setLoading(false);
@@ -49,5 +57,17 @@ export function useDraftSocket({ draftId, enabled = true }: UseDraftSocketProps)
     [draftId]
   );
 
-  return { board, loading, error, makePick };
+  const pauseDraft = useCallback(async () => {
+    if (!draftId) return;
+    setLoading(true);
+    await fetch(`/api/drafts/${draftId}/pause`, { method: 'POST' });
+  }, [draftId]);
+
+  const resumeDraft = useCallback(async () => {
+    if (!draftId) return;
+    setLoading(true);
+    await fetch(`/api/drafts/${draftId}/resume`, { method: 'POST' });
+  }, [draftId]);
+
+  return { board, loading, error, makePick, pauseDraft, resumeDraft };
 }

@@ -9,6 +9,7 @@ export interface Draft {
   currentManagerId: string | null;
   draftOrder: string[];
   pickTimeSeconds: number;
+  pausedAt: Date | null;
   startedAt: Date | null;
   completedAt: Date | null;
   createdAt: Date;
@@ -24,7 +25,7 @@ export interface DraftPick {
   selectedAt: Date;
 }
 
-export async function createDraft(leagueId: string, pickTimeSeconds = 60): Promise<Draft> {
+export async function createDraft(leagueId: string, pickTimeSeconds = 120): Promise<Draft> {
   const result = await query(
     `INSERT INTO drafts (league_id, pick_time_seconds) VALUES ($1, $2) RETURNING *`,
     [leagueId, pickTimeSeconds]
@@ -165,6 +166,32 @@ export async function makePick(
   } finally {
     client.release();
   }
+}
+
+export async function pauseDraft(draftId: string): Promise<Draft> {
+  const draft = await findDraftById(draftId);
+  if (!draft) throw new Error('Draft not found');
+  if (draft.status !== 'active') throw new Error('Draft is not active');
+  
+  await query(
+    `UPDATE drafts SET status = 'paused', paused_at = NOW() WHERE id = $1`,
+    [draftId]
+  );
+  
+  return (await findDraftById(draftId))!;
+}
+
+export async function resumeDraft(draftId: string): Promise<Draft> {
+  const draft = await findDraftById(draftId);
+  if (!draft) throw new Error('Draft not found');
+  if (draft.status !== 'paused') throw new Error('Draft is not paused');
+  
+  await query(
+    `UPDATE drafts SET status = 'active', paused_at = NULL WHERE id = $1`,
+    [draftId]
+  );
+  
+  return (await findDraftById(draftId))!;
 }
 
 export async function getDraftBoard(draftId: string): Promise<{
