@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useDraftSocket } from '../hooks/useDraftSocket';
 import type { Player } from '../types';
@@ -29,8 +29,24 @@ export default function Draft() {
     return players;
   }, [board?.availablePlayers, searchQuery]);
   
-  // Timer for current pick
+  // Countdown timer - syncs when pick changes
   const [timeLeft, setTimeLeft] = useState(60);
+  
+  // Reset timer when pick changes
+  useEffect(() => {
+    if (board?.draft) {
+      setTimeLeft(board.draft.pickTimeSeconds || 60);
+    }
+  }, [board?.draft?.currentPick, board?.draft?.currentRound]);
+  
+  // Countdown effect
+  useEffect(() => {
+    if (!board?.draft || board.draft.status !== 'active') return;
+    if (timeLeft <= 0) return;
+    
+    const timer = setTimeout(() => setTimeLeft(t => t - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [timeLeft, board?.draft?.status]);
   
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const isMyTurn = true; // TODO: Check if current user's team
@@ -116,11 +132,27 @@ export default function Draft() {
                     {pick.round}.{pick.pick}
                   </span>
                   {pick.playerId ? (
-                    <div>
-                      <p className="font-medium">{pick.playerName}</p>
-                      <p className="text-xs text-gray-400">
-                        {pick.teamName}
-                      </p>
+                    <div className="flex items-center gap-2">
+                      {/* Small avatar for drafted player */}
+                      <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-700 flex-shrink-0">
+                        {pick.playerImage ? (
+                          <img 
+                            src={pick.playerImage} 
+                            alt={pick.playerName}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-sm">
+                            🍺
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">{pick.playerName}</p>
+                        <p className="text-xs text-gray-400">
+                          {pick.teamName}
+                        </p>
+                      </div>
                     </div>
                   ) : (
                     <span className="text-gray-500 text-sm">On the clock</span>
@@ -168,24 +200,35 @@ export default function Draft() {
                   className="flex items-center gap-3 flex-1"
                   onClick={() => isMyTurn && setSelectedPlayer(player)}
                 >
-                  <span className="text-gray-500 font-mono text-sm w-12">
-                    {player.adp ? `#${player.adp}` : '--'}
-                  </span>
-                  <div className="flex-1">
+                  {/* Drinker Avatar */}
+                  <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-700 flex-shrink-0 border-2 border-gray-600">
+                    {player.profileImage ? (
+                      <img 
+                        src={player.profileImage} 
+                        alt={player.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-2xl">
+                        🍺
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
                     <Link 
                       to={`/players/${player.id}`}
-                      className="font-medium hover:text-emerald-500"
+                      className="font-medium hover:text-emerald-500 block truncate"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {player.name}
                     </Link>
-                    <p className="text-sm text-gray-400">
-                      {player.team}
+                    <p className="text-sm text-gray-400 truncate">
+                      {player.team || 'Free Agent'}
                     </p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="font-medium">
+                <div className="text-right flex-shrink-0 ml-2">
+                  <p className="font-medium text-emerald-400">
                     {player.projectedPoints?.toFixed(1) || '--'}
                   </p>
                   <p className="text-xs text-gray-400">pts</p>

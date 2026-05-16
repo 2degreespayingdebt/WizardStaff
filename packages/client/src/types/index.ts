@@ -99,6 +99,7 @@ export interface DraftPick {
   teamName?: string;
   playerName?: string;
   playerPosition?: string;
+  playerImage?: string;
 }
 
 export interface DraftBoard {

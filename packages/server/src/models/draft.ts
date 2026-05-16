@@ -176,7 +176,7 @@ export async function getDraftBoard(draftId: string): Promise<{
   if (!draft) throw new Error('Draft not found');
   
   const picksResult = await query(
-    `SELECT dp.*, t.name as team_name, p.name as player_name, p.position as player_position
+    `SELECT dp.*, t.name as team_name, p.name as player_name, p.position as player_position, p.profile_image as player_image
      FROM draft_picks dp
      LEFT JOIN teams t ON t.id = dp.team_id
      LEFT JOIN players p ON p.id = dp.player_id
