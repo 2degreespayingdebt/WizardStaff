@@ -108,6 +108,25 @@ export interface DraftBoard {
   availablePlayers: Player[];
 }
 
+// Season types
+export interface Season {
+  id: string;
+  leagueId: string;
+  name: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface SeasonTeam {
+  id: string;
+  seasonId: string;
+  teamId: string;
+  seed: number | null;
+  drinkCount: number;
+  teamName?: string;
+  createdAt: string;
+}
+
 // API Response types
 export interface AuthResponse {
   user: User;

@@ -1,23 +1,58 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { api } from '../services/api';
-import type { League, Team, Draft } from '../types';
+import type { League, Team, Season, SeasonTeam } from '../types';
+
+type Tab = 'teams' | 'seasons' | 'leaderboard';
 
 export default function League() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  
   const [league, setLeague] = useState<League | null>(null);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [seasons, setSeasons] = useState<Season[]>([]);
+  const [seasonTeams, setSeasonTeams] = useState<SeasonTeam[]>([]);
+  const [leaderboard, setLeaderboard] = useState<SeasonTeam[]>([]);
+  
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  const [activeTab, setActiveTab] = useState<Tab>('teams');
+  const [selectedSeasonId, setSelectedSeasonId] = useState<string | null>(null);
+  const [activeSeason, setActiveSeason] = useState<Season | null>(null);
+  
+  // Team form state
+  const [showTeamForm, setShowTeamForm] = useState(false);
+  const [editingTeam, setEditingTeam] = useState<Team | null>(null);
+  const [teamName, setTeamName] = useState('');
+  
+  // Season form state
+  const [showSeasonForm, setShowSeasonForm] = useState(false);
+  const [editingSeason, setEditingSeason] = useState<Season | null>(null);
+  const [seasonName, setSeasonName] = useState('');
 
   useEffect(() => {
-    if (id) loadLeague(id);
+    if (id) loadData(id);
   }, [id]);
 
-  const loadLeague = async (leagueId: string) => {
+  const loadData = async (leagueId: string) => {
     try {
+      setLoading(true);
       const data = await api.getLeague(leagueId);
       setLeague(data);
+      setTeams(data.teams || []);
+      
+      const seasonsData = await api.getSeasons(leagueId);
+      setSeasons(seasonsData);
+      
+      const active = seasonsData.find((s: Season) => s.isActive);
+      if (active) {
+        setActiveSeason(active);
+        setSelectedSeasonId(active.id);
+        loadLeaderboard(active.id);
+      }
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -25,15 +60,146 @@ export default function League() {
     }
   };
 
-  const startDraft = async () => {
-    if (!league || !league.teams || league.teams.length < 2) return;
-    
+  const loadLeaderboard = async (seasonId: string) => {
     try {
-      // TODO: Call API to start draft
-      const draftId = 'demo-draft-id'; // Temporary
-      navigate(`/draft/${draftId}`);
+      const lb = await api.getSeasonLeaderboard(seasonId);
+      setLeaderboard(lb);
+    } catch (err) {
+      console.error('Failed to load leaderboard:', err);
+    }
+  };
+
+  // Team handlers
+  const handleCreateTeam = async () => {
+    if (!teamName.trim() || !id) return;
+    try {
+      setSaving(true);
+      const team = await api.createTeam(id, teamName);
+      setTeams([...teams, team]);
+      setTeamName('');
+      setShowTeamForm(false);
     } catch (err) {
       setError((err as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleUpdateTeam = async () => {
+    if (!teamName.trim() || !editingTeam) return;
+    try {
+      setSaving(true);
+      const updated = await api.updateTeam(editingTeam.id, teamName);
+      setTeams(teams.map(t => t.id === updated.id ? updated : t));
+      setTeamName('');
+      setEditingTeam(null);
+      setShowTeamForm(false);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Season handlers
+  const handleCreateSeason = async () => {
+    if (!seasonName.trim() || !id) return;
+    try {
+      setSaving(true);
+      const season = await api.createSeason(id, seasonName);
+      setSeasons([...seasons, season]);
+      setSeasonName('');
+      setShowSeasonForm(false);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleUpdateSeason = async () => {
+    if (!seasonName.trim() || !editingSeason) return;
+    try {
+      setSaving(true);
+      const updated = await api.updateSeason(editingSeason.id, seasonName);
+      setSeasons(seasons.map(s => s.id === updated.id ? updated : s));
+      setSeasonName('');
+      setEditingSeason(null);
+      setShowSeasonForm(false);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleActivateSeason = async (seasonId: string) => {
+    try {
+      setSaving(true);
+      await api.activateSeason(seasonId);
+      setSeasons(seasons.map(s => ({
+        ...s,
+        isActive: s.id === seasonId
+      })));
+      const activated = seasons.find(s => s.id === seasonId);
+      if (activated) setActiveSeason({ ...activated, isActive: true });
+      setSelectedSeasonId(seasonId);
+      await loadLeaderboard(seasonId);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSetSeasonTeams = async () => {
+    if (!selectedSeasonId) return;
+    const teamIds = teams.map(t => t.id);
+    try {
+      setSaving(true);
+      const st = await api.setSeasonTeams(selectedSeasonId, teamIds);
+      setSeasonTeams(st);
+      await loadLeaderboard(selectedSeasonId);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSelectSeason = async (seasonId: string) => {
+    setSelectedSeasonId(seasonId);
+    const selected = seasons.find(s => s.id === seasonId);
+    if (selected) {
+      setActiveSeason(selected);
+      await loadLeaderboard(seasonId);
+    }
+  };
+
+  // Drink count handlers
+  const handleAddDrink = async (teamId: string) => {
+    if (!selectedSeasonId) return;
+    try {
+      setSaving(true);
+      const updated = await api.updateDrinkCount(selectedSeasonId, teamId, 1);
+      setLeaderboard(leaderboard.map(t => t.teamId === teamId ? updated : t));
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleRemoveDrink = async (teamId: string) => {
+    if (!selectedSeasonId) return;
+    try {
+      setSaving(true);
+      const updated = await api.updateDrinkCount(selectedSeasonId, teamId, -1);
+      setLeaderboard(leaderboard.map(t => t.teamId === teamId ? updated : t));
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -58,8 +224,6 @@ export default function League() {
     );
   }
 
-  const isCommissioner = false; // TODO: Check if current user is commissioner
-
   return (
     <div className="min-h-screen">
       {/* Header */}
@@ -76,116 +240,363 @@ export default function League() {
 
       <main className="max-w-4xl mx-auto px-4 py-8">
         {/* League Info */}
-        <div className="card mb-8">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <h2 className="text-2xl font-bold">{league.name}</h2>
-              <p className="text-gray-400">
-                {league.scoringFormat} • {league.maxTeams} Teams
-              </p>
-            </div>
-            <span
-              className={`text-lg px-3 py-1 rounded ${
-                league.draftStatus === 'in_progress'
-                  ? 'bg-emerald-600'
-                  : league.draftStatus === 'completed'
-                  ? 'bg-gray-600'
-                  : 'bg-yellow-600'
-              }`}
-            >
-              {league.draftStatus === 'in_progress'
-                ? '🏈 Draft Live'
-                : league.draftStatus === 'completed'
-                ? '✓ Completed'
-                : '⏳ Pending Draft'}
-            </span>
-          </div>
-
-          {/* League Settings */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div>
-              <p className="text-gray-400">Scoring</p>
-              <p className="font-medium">{league.scoringFormat}</p>
-            </div>
-            <div>
-              <p className="text-gray-400">Teams</p>
-              <p className="font-medium">{league.teams?.length || 0}/{league.maxTeams}</p>
-            </div>
-            <div>
-              <p className="text-gray-400">Playoff Teams</p>
-              <p className="font-medium">{league.settings.playoffTeams}</p>
-            </div>
-            <div>
-              <p className="text-gray-400">Waivers</p>
-              <p className="font-medium uppercase">{league.settings.waiverType}</p>
-            </div>
-          </div>
+        <div className="card mb-6">
+          <h2 className="text-2xl font-bold">{league.name}</h2>
+          <p className="text-gray-400">
+            🍺 {teams.length}/{league.maxTeams} Teams
+          </p>
         </div>
 
-        {/* Start Draft Button (Commissioner) */}
-        {isCommissioner && league.draftStatus === 'pending' && league.teams && league.teams.length >= 2 && (
-          <div className="card mb-8 border-emerald-500">
-            <p className="text-gray-400 mb-4">
-              You have enough teams to start the draft!
-            </p>
-            <button onClick={startDraft} className="btn-primary">
-              🏈 Start Draft
-            </button>
+        {/* Tabs */}
+        <div className="flex border-b border-gray-700 mb-6">
+          <button
+            onClick={() => setActiveTab('teams')}
+            className={`px-4 py-2 font-medium ${
+              activeTab === 'teams'
+                ? 'text-emerald-500 border-b-2 border-emerald-500'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Teams ({teams.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('seasons')}
+            className={`px-4 py-2 font-medium ${
+              activeTab === 'seasons'
+                ? 'text-emerald-500 border-b-2 border-emerald-500'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Seasons ({seasons.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('leaderboard')}
+            className={`px-4 py-2 font-medium ${
+              activeTab === 'leaderboard'
+                ? 'text-emerald-500 border-b-2 border-emerald-500'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            🏆 Leaderboard
+          </button>
+        </div>
+
+        {/* Teams Tab */}
+        {activeTab === 'teams' && (
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Teams</h3>
+              <button
+                onClick={() => {
+                  setEditingTeam(null);
+                  setTeamName('');
+                  setShowTeamForm(true);
+                }}
+                className="btn-primary text-sm"
+              >
+                + Add Team
+              </button>
+            </div>
+
+            {/* Team Form */}
+            {showTeamForm && (
+              <div className="card mb-4 border-emerald-500">
+                <h4 className="font-medium mb-3">
+                  {editingTeam ? 'Edit Team' : 'Add New Team'}
+                </h4>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={teamName}
+                    onChange={(e) => setTeamName(e.target.value)}
+                    placeholder="Team name"
+                    className="flex-1"
+                  />
+                  <button
+                    onClick={editingTeam ? handleUpdateTeam : handleCreateTeam}
+                    disabled={saving || !teamName.trim()}
+                    className="btn-primary"
+                  >
+                    {saving ? 'Saving...' : editingTeam ? 'Update' : 'Add'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowTeamForm(false);
+                      setEditingTeam(null);
+                      setTeamName('');
+                    }}
+                    className="btn-secondary"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Teams List */}
+            {teams.length === 0 ? (
+              <p className="text-gray-400">No teams yet. Add your first team!</p>
+            ) : (
+              <div className="space-y-2">
+                {teams.map((team, index) => (
+                  <div
+                    key={team.id}
+                    className="flex items-center justify-between p-3 bg-gray-800 rounded"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-gray-500 w-6">#{index + 1}</span>
+                      <div>
+                        <p className="font-medium">{team.name}</p>
+                        <p className="text-sm text-gray-400">
+                          {team.managerName || 'Unknown Manager'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          setEditingTeam(team);
+                          setTeamName(team.name);
+                          setShowTeamForm(true);
+                        }}
+                        className="text-sm text-gray-400 hover:text-white"
+                      >
+                        Edit
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
-        {/* Teams List */}
-        <div className="card">
-          <h3 className="text-lg font-semibold mb-4">Teams ({league.teams?.length || 0})</h3>
-          
-          {(!league.teams || league.teams.length === 0) ? (
-            <p className="text-gray-400">No teams yet. Invite friends to join!</p>
-          ) : (
-            <div className="space-y-3">
-              {league.teams.map((team, index) => (
-                <div
-                  key={team.id}
-                  className="flex items-center justify-between py-2 border-b border-gray-700 last:border-0"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-gray-500 w-6">#{index + 1}</span>
-                    <div>
-                      <p className="font-medium">{team.name}</p>
-                      <p className="text-sm text-gray-400">
-                        {team.managerName || 'Unknown Manager'}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => navigate(`/teams/${team.id}`)}
-                    className="btn-secondary text-sm"
-                  >
-                    View Roster
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Invite Section */}
-        {league.inviteCode && (
-          <div className="card mt-8">
-            <h3 className="text-lg font-semibold mb-2">Invite Friends</h3>
-            <p className="text-gray-400 text-sm mb-2">
-              Share this code to invite others:
-            </p>
-            <div className="flex items-center gap-2">
-              <code className="text-xl font-mono bg-gray-700 px-4 py-2 rounded">
-                {league.inviteCode}
-              </code>
+        {/* Seasons Tab */}
+        {activeTab === 'seasons' && (
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Seasons</h3>
               <button
-                onClick={() => navigator.clipboard.writeText(league.inviteCode!)}
-                className="btn-secondary"
+                onClick={() => {
+                  setEditingSeason(null);
+                  setSeasonName('');
+                  setShowSeasonForm(true);
+                }}
+                className="btn-primary text-sm"
               >
-                Copy
+                + Add Season
               </button>
             </div>
+
+            {/* Season Form */}
+            {showSeasonForm && (
+              <div className="card mb-4 border-emerald-500">
+                <h4 className="font-medium mb-3">
+                  {editingSeason ? 'Edit Season' : 'Add New Season'}
+                </h4>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={seasonName}
+                    onChange={(e) => setSeasonName(e.target.value)}
+                    placeholder="Season name (e.g., Summer 2024)"
+                    className="flex-1"
+                  />
+                  <button
+                    onClick={editingSeason ? handleUpdateSeason : handleCreateSeason}
+                    disabled={saving || !seasonName.trim()}
+                    className="btn-primary"
+                  >
+                    {saving ? 'Saving...' : editingSeason ? 'Update' : 'Add'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowSeasonForm(false);
+                      setEditingSeason(null);
+                      setSeasonName('');
+                    }}
+                    className="btn-secondary"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Seasons List */}
+            {seasons.length === 0 ? (
+              <p className="text-gray-400">No seasons yet. Add your first season!</p>
+            ) : (
+              <div className="space-y-3">
+                {seasons.map((season) => (
+                  <div
+                    key={season.id}
+                    className={`p-3 bg-gray-800 rounded ${
+                      season.isActive ? 'border border-emerald-500' : ''
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="font-medium">
+                          {season.isActive && '🏆 '}
+                          {season.name}
+                        </span>
+                        {season.isActive && (
+                          <span className="text-xs bg-emerald-600 px-2 py-0.5 rounded">
+                            Active
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            setEditingSeason(season);
+                            setSeasonName(season.name);
+                            setShowSeasonForm(true);
+                          }}
+                          className="text-sm text-gray-400 hover:text-white"
+                        >
+                          Edit
+                        </button>
+                        {!season.isActive && (
+                          <button
+                            onClick={() => handleActivateSeason(season.id)}
+                            disabled={saving}
+                            className="text-sm text-emerald-500 hover:text-emerald-400"
+                          >
+                            Activate
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Season Teams */}
+                    {selectedSeasonId === season.id && (
+                      <div className="mt-3 pt-3 border-t border-gray-700">
+                        <div className="flex justify-between items-center mb-2">
+                          <p className="text-sm text-gray-400">Teams in Season</p>
+                          <button
+                            onClick={handleSetSeasonTeams}
+                            disabled={saving}
+                            className="text-sm text-emerald-500 hover:text-emerald-400"
+                          >
+                            Set All Teams
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Select season */}
+            {seasons.length > 0 && (
+              <div className="mt-4">
+                <label className="text-sm text-gray-400">
+                  Select season to view/edit:
+                </label>
+                <select
+                  value={selectedSeasonId || ''}
+                  onChange={(e) => handleSelectSeason(e.target.value)}
+                  className="ml-2 bg-gray-800 border border-gray-700 rounded px-2 py-1"
+                >
+                  <option value="">Select a season...</option>
+                  {seasons.map((season) => (
+                    <option key={season.id} value={season.id}>
+                      {season.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Leaderboard Tab */}
+        {activeTab === 'leaderboard' && (
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">🍺 Drink Leaderboard</h3>
+              <select
+                value={selectedSeasonId || ''}
+                onChange={(e) => handleSelectSeason(e.target.value)}
+                className="bg-gray-800 border border-gray-700 rounded px-2 py-1"
+              >
+                <option value="">Select a season...</option>
+                {seasons.map((season) => (
+                  <option key={season.id} value={season.id}>
+                    {season.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {!selectedSeasonId ? (
+              <p className="text-gray-400">Select a season to view the leaderboard</p>
+            ) : leaderboard.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-400 mb-4">No teams in this season yet</p>
+                <button
+                  onClick={handleSetSeasonTeams}
+                  disabled={saving || teams.length === 0}
+                  className="btn-primary"
+                >
+                  Add Teams to Season
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {leaderboard.map((team, index) => (
+                  <div
+                    key={team.teamId}
+                    className={`flex items-center justify-between p-4 bg-gray-800 rounded ${
+                      index === 0 ? 'border-2 border-yellow-500' : ''
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <span className={`text-2xl font-bold w-10 ${
+                        index === 0 ? 'text-yellow-500' :
+                        index === 1 ? 'text-gray-300' :
+                        index === 2 ? 'text-amber-600' :
+                        'text-gray-500'
+                      }`}>
+                        {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
+                      </span>
+                      <div>
+                        <p className="font-medium text-lg">{team.teamName}</p>
+                        <p className="text-sm text-gray-400">
+                          {activeSeason?.name}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-4">
+                      <div className="text-center">
+                        <p className="text-3xl font-bold text-emerald-400">{team.drinkCount}</p>
+                        <p className="text-xs text-gray-400">drinks</p>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <button
+                          onClick={() => handleAddDrink(team.teamId)}
+                          disabled={saving}
+                          className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 rounded text-sm"
+                        >
+                          +1 🍺
+                        </button>
+                        <button
+                          onClick={() => handleRemoveDrink(team.teamId)}
+                          disabled={saving || team.drinkCount <= 0}
+                          className="px-3 py-1 bg-red-600 hover:bg-red-500 rounded text-sm"
+                        >
+                          -1 🍺
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </main>

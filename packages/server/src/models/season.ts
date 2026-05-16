@@ -13,6 +13,7 @@ export interface SeasonTeam {
   seasonId: string;
   teamId: string;
   seed: number | null;
+  drinkCount: number;
   teamName?: string;
   createdAt: Date;
 }
@@ -123,7 +124,7 @@ export async function setSeasonTeams(
     
     for (let i = 0; i < teamIds.length; i++) {
       await client.query(
-        `INSERT INTO season_teams (season_id, team_id, seed) VALUES ($1, $2, $3)`,
+        `INSERT INTO season_teams (season_id, team_id, seed, drink_count) VALUES ($1, $2, $3, 0)`,
         [seasonId, teamIds[i], i + 1]
       );
     }
@@ -137,6 +138,33 @@ export async function setSeasonTeams(
   } finally {
     client.release();
   }
+}
+
+export async function updateDrinkCount(
+  seasonId: string,
+  teamId: string,
+  change: number
+): Promise<SeasonTeam> {
+  const result = await query(
+    `UPDATE season_teams 
+     SET drink_count = drink_count + $1 
+     WHERE season_id = $2 AND team_id = $3 
+     RETURNING *`,
+    [change, seasonId, teamId]
+  );
+  return mapSeasonTeam(result.rows[0]);
+}
+
+export async function getSeasonLeaderboard(seasonId: string): Promise<SeasonTeam[]> {
+  const result = await query(
+    `SELECT st.*, t.name as team_name
+     FROM season_teams st
+     JOIN teams t ON t.id = st.team_id
+     WHERE st.season_id = $1
+     ORDER BY st.drink_count DESC, st.seed ASC NULLS LAST`,
+    [seasonId]
+  );
+  return result.rows.map(mapSeasonTeam);
 }
 
 function mapSeason(row: unknown): Season {
@@ -159,6 +187,7 @@ function mapSeasonTeam(row: unknown): SeasonTeam {
     seasonId: r.season_id,
     teamId: r.team_id,
     seed: r.seed,
+    drinkCount: r.drink_count || 0,
     teamName: r.team_name,
     createdAt: r.created_at,
   };

@@ -1,4 +1,4 @@
-import type { User, League, Team, Player, DraftBoard, AuthResponse } from '../types';
+import type { User, League, Team, Player, DraftBoard, Season, SeasonTeam, AuthResponse } from '../types';
 
 const API_BASE = '/api';
 
@@ -165,6 +165,22 @@ class ApiService {
   // Drafts
   async getDraftBoard(draftId: string): Promise<DraftBoard> {
     return this.request<DraftBoard>(`/drafts/${draftId}/board`);
+  }
+
+  // Season Leaderboard
+  async getSeasonLeaderboard(seasonId: string): Promise<SeasonTeam[]> {
+    return this.request<SeasonTeam[]>(`/leagues/seasons/${seasonId}/leaderboard`);
+  }
+
+  async updateDrinkCount(
+    seasonId: string,
+    teamId: string,
+    change: number
+  ): Promise<SeasonTeam> {
+    return this.request<SeasonTeam>(`/leagues/seasons/${seasonId}/teams/${teamId}/drinks`, {
+      method: 'POST',
+      body: JSON.stringify({ change }),
+    });
   }
 }
 

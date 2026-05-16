@@ -152,4 +152,35 @@ router.post('/:id/invite', async (req: AuthRequest, res: Response) => {
   }
 });
 
+// Get season leaderboard
+router.get('/seasons/:seasonId/leaderboard', async (req: AuthRequest, res: Response) => {
+  try {
+    const leaderboard = await seasonModel.getSeasonLeaderboard(req.params.seasonId);
+    res.json(leaderboard);
+  } catch (error) {
+    console.error('Get leaderboard error:', error);
+    res.status(500).json({ error: 'Failed to get leaderboard' });
+  }
+});
+
+// Add/subtract drinks from team
+router.post('/seasons/:seasonId/teams/:teamId/drinks', async (req: AuthRequest, res: Response) => {
+  try {
+    const { change } = req.body;
+    if (typeof change !== 'number') {
+      return res.status(400).json({ error: 'Change must be a number' });
+    }
+    
+    const result = await seasonModel.updateDrinkCount(
+      req.params.seasonId,
+      req.params.teamId,
+      change
+    );
+    res.json(result);
+  } catch (error) {
+    console.error('Update drink count error:', error);
+    res.status(500).json({ error: 'Failed to update drink count' });
+  }
+});
+
 export default router;
