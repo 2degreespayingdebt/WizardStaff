@@ -2,14 +2,18 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
+import { useRole } from '../hooks/useRole';
 import type { League, Team, Season, SeasonTeam } from '../types';
 
 type Tab = 'teams' | 'seasons' | 'leaderboard';
+
+const MAX_DRINKS = 100;
 
 export default function League() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const perms = usePermissions();
+  const { role } = useRole();
   
   const [league, setLeague] = useState<League | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
@@ -22,8 +26,6 @@ export default function League() {
   const [error, setError] = useState<string | null>(null);
   
   const [activeTab, setActiveTab] = useState<Tab>('teams');
-  const [selectedSeasonId, setSelectedSeasonId] = useState<string | null>(null);
-  const [activeSeason, setActiveSeason] = useState<Season | null>(null);
   
   // Team form state
   const [showTeamForm, setShowTeamForm] = useState(false);
@@ -34,6 +36,8 @@ export default function League() {
   const [showSeasonForm, setShowSeasonForm] = useState(false);
   const [editingSeason, setEditingSeason] = useState<Season | null>(null);
   const [seasonName, setSeasonName] = useState('');
+  const [selectedSeasonId, setSelectedSeasonId] = useState<string | null>(null);
+  const [activeSeason, setActiveSeason] = useState<Season | null>(null);
 
   useEffect(() => {
     if (id) loadData(id);
@@ -53,7 +57,8 @@ export default function League() {
       if (active) {
         setActiveSeason(active);
         setSelectedSeasonId(active.id);
-        loadLeaderboard(active.id);
+        const lb = await api.getSeasonLeaderboard(active.id);
+        setLeaderboard(lb);
       }
     } catch (err) {
       setError((err as Error).message);
@@ -62,16 +67,15 @@ export default function League() {
     }
   };
 
-  const loadLeaderboard = async (seasonId: string) => {
+  const loadSeasonTeams = async (seasonId: string) => {
     try {
-      const lb = await api.getSeasonLeaderboard(seasonId);
-      setLeaderboard(lb);
+      const st = await api.getSeasonTeams(seasonId);
+      setSeasonTeams(st);
     } catch (err) {
-      console.error('Failed to load leaderboard:', err);
+      console.error('Failed to load season teams:', err);
     }
   };
 
-  // Team handlers
   const handleCreateTeam = async () => {
     if (!teamName.trim() || !id) return;
     try {
@@ -103,7 +107,6 @@ export default function League() {
     }
   };
 
-  // Season handlers
   const handleCreateSeason = async () => {
     if (!seasonName.trim() || !id) return;
     try {
@@ -146,7 +149,8 @@ export default function League() {
       const activated = seasons.find(s => s.id === seasonId);
       if (activated) setActiveSeason({ ...activated, isActive: true });
       setSelectedSeasonId(seasonId);
-      await loadLeaderboard(seasonId);
+      const lb = await api.getSeasonLeaderboard(seasonId);
+      setLeaderboard(lb);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -161,7 +165,8 @@ export default function League() {
       setSaving(true);
       const st = await api.setSeasonTeams(selectedSeasonId, teamIds);
       setSeasonTeams(st);
-      await loadLeaderboard(selectedSeasonId);
+      const lb = await api.getSeasonLeaderboard(selectedSeasonId);
+      setLeaderboard(lb);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -174,11 +179,11 @@ export default function League() {
     const selected = seasons.find(s => s.id === seasonId);
     if (selected) {
       setActiveSeason(selected);
-      await loadLeaderboard(seasonId);
+      const lb = await api.getSeasonLeaderboard(seasonId);
+      setLeaderboard(lb);
     }
   };
 
-  // Drink count handlers
   const handleAddDrink = async (teamId: string) => {
     if (!selectedSeasonId) return;
     try {
@@ -205,19 +210,25 @@ export default function League() {
     }
   };
 
+  // Sort leaderboard by drink count descending
+  const sortedLeaderboard = [...leaderboard].sort((a, b) => b.drinkCount - a.drinkCount);
+
+  // Get max drinks for scaling (at least 10, at most 100)
+  const maxDrinks = Math.max(10, ...leaderboard.map(t => t.drinkCount), 20);
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-sand-500"></div>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#023E8A' }}>
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2" style={{ borderColor: '#D4A574' }}></div>
       </div>
     );
   }
 
   if (error || !league) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#023E8A' }}>
         <div className="text-center">
-          <p className="text-red-500 mb-4">{error || 'League not found'}</p>
+          <p className="text-red-400 mb-4">{error || 'League not found'}</p>
           <Link to="/leagues" className="btn-primary">
             Back to Leagues
           </Link>
@@ -227,25 +238,24 @@ export default function League() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen" style={{ backgroundColor: '#023E8A' }}>
       {/* Header */}
-      <header className="bg-ocean-800 border-b border-ocean-700">
+      <header className="border-b" style={{ backgroundColor: '#0077B6', borderColor: '#D4A574' }}>
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
             <button onClick={() => navigate('/leagues')} className="text-sand-500 hover:text-white">
               ← Back
             </button>
-            <h1 className="text-xl font-bold">{league.name}</h1>
+            <h1 className="text-xl font-bold" style={{ color: '#D4A574' }}>{league.name}</h1>
           </div>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-8">
-        {/* League Info */}
+      <main className="max-w-6xl mx-auto px-4 py-8">
         <div className="card mb-6">
           <h2 className="text-2xl font-bold">{league.name}</h2>
           <p className="text-sand-500">
-            🍺 {teams.length}/{league.maxTeams} Teams
+            {role === 'admin' ? '👑 Admin' : '🏄 Team Lead'} • {teams.length}/{league.maxTeams} Teams
           </p>
         </div>
 
@@ -302,7 +312,6 @@ export default function League() {
               </button>
             </div>
 
-            {/* Team Form */}
             {showTeamForm && (
               <div className="card mb-4 border-sand-500">
                 <h4 className="font-medium mb-3">
@@ -337,9 +346,8 @@ export default function League() {
               </div>
             )}
 
-            {/* Teams List */}
             {teams.length === 0 ? (
-              <p className="text-sand-500">No teams yet. Add your first team!</p>
+              <p className="text-sand-500">No teams yet.</p>
             ) : (
               <div className="space-y-2">
                 {teams.map((team, index) => (
@@ -352,24 +360,22 @@ export default function League() {
                       <div>
                         <p className="font-medium">{team.name}</p>
                         <p className="text-sm text-sand-500">
-                          {team.managerName || 'Unknown Manager'}
+                          {team.managerName || 'Unknown'}
                         </p>
                       </div>
                     </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => {
-                          setEditingTeam(team);
-                          setTeamName(team.name);
-                          setShowTeamForm(true);
-                        }}
-                        disabled={!perms.canEditAnyTeam}
-                        className="text-sm text-sand-500 hover:text-white"
-                        title={!perms.canEditAnyTeam ? 'Admin only' : ''}
-                      >
-                        Edit
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => {
+                        setEditingTeam(team);
+                        setTeamName(team.name);
+                        setShowTeamForm(true);
+                      }}
+                      disabled={!perms.canEditAnyTeam}
+                      className="text-sm text-sand-500 hover:text-white"
+                      title={!perms.canEditAnyTeam ? 'Admin only' : ''}
+                    >
+                      Edit
+                    </button>
                   </div>
                 ))}
               </div>
@@ -396,7 +402,6 @@ export default function League() {
               </button>
             </div>
 
-            {/* Season Form */}
             {showSeasonForm && (
               <div className="card mb-4 border-sand-500">
                 <h4 className="font-medium mb-3">
@@ -407,7 +412,7 @@ export default function League() {
                     type="text"
                     value={seasonName}
                     onChange={(e) => setSeasonName(e.target.value)}
-                    placeholder="Season name (e.g., Summer 2024)"
+                    placeholder="Season name"
                     className="flex-1"
                   />
                   <button
@@ -431,9 +436,8 @@ export default function League() {
               </div>
             )}
 
-            {/* Seasons List */}
             {seasons.length === 0 ? (
-              <p className="text-sand-500">No seasons yet. Add your first season!</p>
+              <p className="text-sand-500">No seasons yet.</p>
             ) : (
               <div className="space-y-3">
                 {seasons.map((season) => (
@@ -478,59 +482,22 @@ export default function League() {
                         )}
                       </div>
                     </div>
-
-                    {/* Season Teams */}
-                    {selectedSeasonId === season.id && (
-                      <div className="mt-3 pt-3 border-t border-ocean-700">
-                        <div className="flex justify-between items-center mb-2">
-                          <p className="text-sm text-sand-500">Teams in Season</p>
-                          <button
-                            onClick={handleSetSeasonTeams}
-                            disabled={saving}
-                            className="text-sm text-sand-500 hover:text-emerald-400"
-                          >
-                            Set All Teams
-                          </button>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 ))}
-              </div>
-            )}
-
-            {/* Select season */}
-            {seasons.length > 0 && (
-              <div className="mt-4">
-                <label className="text-sm text-sand-500">
-                  Select season to view/edit:
-                </label>
-                <select
-                  value={selectedSeasonId || ''}
-                  onChange={(e) => handleSelectSeason(e.target.value)}
-                  className="ml-2 bg-ocean-800 border border-ocean-700 rounded px-2 py-1"
-                >
-                  <option value="">Select a season...</option>
-                  {seasons.map((season) => (
-                    <option key={season.id} value={season.id}>
-                      {season.name}
-                    </option>
-                  ))}
-                </select>
               </div>
             )}
           </div>
         )}
 
-        {/* Leaderboard Tab */}
+        {/* Leaderboard Tab with Bar Graph */}
         {activeTab === 'leaderboard' && (
           <div>
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">🍺 Drink Leaderboard</h3>
+              <h3 className="text-lg font-semibold">🍺 Season Leaderboard</h3>
               <select
                 value={selectedSeasonId || ''}
                 onChange={(e) => handleSelectSeason(e.target.value)}
-                className="bg-ocean-800 border border-ocean-700 rounded px-2 py-1"
+                className="bg-ocean-800 border border-sand-700 rounded px-2 py-1"
               >
                 <option value="">Select a season...</option>
                 {seasons.map((season) => (
@@ -555,58 +522,101 @@ export default function League() {
                 </button>
               </div>
             ) : (
-              <div className="space-y-2">
-                {leaderboard.map((team, index) => (
-                  <div
-                    key={team.teamId}
-                    className={`flex items-center justify-between p-4 bg-ocean-800 rounded ${
-                      index === 0 ? 'border-2 border-yellow-500' : ''
-                    }`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <span className={`text-2xl font-bold w-10 ${
-                        index === 0 ? 'text-yellow-500' :
-                        index === 1 ? 'text-gray-300' :
-                        index === 2 ? 'text-amber-600' :
-                        'text-sand-500'
-                      }`}>
-                        {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
-                      </span>
-                      <div>
-                        <p className="font-medium text-lg">{team.teamName}</p>
-                        <p className="text-sm text-sand-500">
-                          {activeSeason?.name}
-                        </p>
-                      </div>
-                    </div>
+              <>
+                {/* Horizontal Bar Graph */}
+                <div className="space-y-4 mb-8">
+                  {sortedLeaderboard.map((team, index) => {
+                    const barWidth = maxDrinks > 0 ? (team.drinkCount / MAX_DRINKS) * 100 : 0;
+                    const isLeading = index === 0;
                     
-                    <div className="flex items-center gap-4">
-                      <div className="text-center">
-                        <p className="text-3xl font-bold text-emerald-400">{team.drinkCount}</p>
-                        <p className="text-xs text-sand-500">drinks</p>
+                    return (
+                      <div key={team.teamId} className="relative">
+                        {/* Team Name and Drink Count */}
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="flex items-center gap-2">
+                            {isLeading && '🥇'}
+                            <span className="font-medium">{team.teamName}</span>
+                          </span>
+                          <span className="text-sand-500 font-mono">
+                            {team.drinkCount} drinks
+                          </span>
+                        </div>
+                        
+                        {/* Bar Container */}
+                        <div className="relative h-8 bg-ocean-800 rounded overflow-hidden">
+                          {/* The Bar */}
+                          <div 
+                            className="absolute top-0 left-0 h-full rounded transition-all duration-500"
+                            style={{ 
+                              width: `${Math.min(barWidth, 100)}%`,
+                              backgroundColor: isLeading ? '#D4A574' : '#00B4D8'
+                            }}
+                          />
+                          
+                          {/* Drink Count Label on Bar */}
+                          {barWidth > 5 && (
+                            <div className="absolute top-0 left-2 h-full flex items-center">
+                              <span className="text-sm font-bold" style={{ color: '#023E8A' }}>
+                                {team.drinkCount}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Scale Labels */}
+                        <div className="flex justify-between mt-1 text-xs text-sand-500">
+                          <span>0</span>
+                          <span>50</span>
+                          <span>100</span>
+                        </div>
                       </div>
-                      <div className="flex flex-col gap-1">
-                        <button
-                          onClick={() => handleAddDrink(team.teamId)}
-                          disabled={saving || !perms.canEditAnyTeamDrinks}
-                          className="px-3 py-1 bg-sand-600 hover:bg-sand-500 rounded text-sm disabled:opacity-50"
-                          title={!perms.canEditAnyTeamDrinks ? 'Admin only' : ''}
+                    );
+                  })}
+                </div>
+
+                {/* Admin Controls - Add/Remove Drinks */}
+                {perms.canEditAnyTeamDrinks && (
+                  <div className="card mt-6">
+                    <h4 className="font-medium mb-4">🍺 Adjust Drinks</h4>
+                    <div className="space-y-2">
+                      {sortedLeaderboard.map((team, index) => (
+                        <div
+                          key={team.teamId}
+                          className="flex items-center justify-between p-3 bg-ocean-800 rounded"
                         >
-                          +1 🍺
-                        </button>
-                        <button
-                          onClick={() => handleRemoveDrink(team.teamId)}
-                          disabled={saving || team.drinkCount <= 0 || !perms.canEditAnyTeamDrinks}
-                          className="px-3 py-1 bg-red-600 hover:bg-red-500 rounded text-sm disabled:opacity-50"
-                          title={!perms.canEditAnyTeamDrinks ? 'Admin only' : ''}
-                        >
-                          -1 🍺
-                        </button>
-                      </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-2xl">
+                              {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
+                            </span>
+                            <span className="font-medium">{team.teamName}</span>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <span className="text-xl font-bold text-emerald-400">
+                              {team.drinkCount}
+                            </span>
+                            <div className="flex gap-1">
+                              <button
+                                onClick={() => handleAddDrink(team.teamId)}
+                                disabled={saving}
+                                className="px-3 py-1 bg-sand-600 hover:bg-sand-500 rounded text-sm"
+                              >
+                                +1
+                              </button>
+                              <button
+                                onClick={() => handleRemoveDrink(team.teamId)}
+                                disabled={saving || team.drinkCount <= 0}
+                                className="px-3 py-1 bg-red-600 hover:bg-red-500 rounded text-sm disabled:opacity-50"
+                              >
+                                -1
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                ))}
-              </div>
+                )}
+              </>
             )}
           </div>
         )}
