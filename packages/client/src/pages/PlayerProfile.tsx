@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
+import { usePermissions } from '../hooks/usePermissions';
 import type { Player } from '../types';
 
 export default function PlayerProfile() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const perms = usePermissions();
   const [player, setPlayer] = useState<Player | null>(null);
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(true);
@@ -30,32 +32,6 @@ export default function PlayerProfile() {
     }
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploading(true);
-    setError(null);
-
-    try {
-      const base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-
-      await api.updatePlayer(player!.id, { profileImage: base64 });
-      setPlayer({ ...player!, profileImage: base64 });
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 2000);
-    } catch (err) {
-      setError('Failed to upload image');
-    } finally {
-      setUploading(false);
-    }
-  };
-
   const handleSaveDescription = async () => {
     if (!player) return;
 
@@ -74,36 +50,71 @@ export default function PlayerProfile() {
     }
   };
 
+  const handleSetStatus = async (status: 'active' | 'out') => {
+    if (!player || saving) return;
+    setSaving(true);
+    setError(null);
+
+    try {
+      const updated = await api.setPlayerStatus(player.id, status, undefined);
+      setPlayer({ ...player, status: updated.status });
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!player || !e.target.files?.[0]) return;
+    
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    
+    reader.onload = async () => {
+      setUploading(true);
+      try {
+        const base64 = reader.result as string;
+        await api.updatePlayer(player.id, { profileImage: base64 });
+        setPlayer({ ...player, profileImage: base64 });
+      } catch (err) {
+        setError((err as Error).message);
+      } finally {
+        setUploading(false);
+      }
+    };
+    
+    reader.readAsDataURL(file);
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-sand-500"></div>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#023E8A' }}>
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2" style={{ borderColor: '#D4A574' }}></div>
       </div>
     );
   }
 
-  if (!player) {
+  if (error || !player) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#023E8A' }}>
         <div className="text-center">
-          <p className="text-red-500 mb-4">Player not found</p>
-          <button onClick={() => navigate(-1)} className="btn-primary">
-            Go Back
-          </button>
+          <p className="text-red-400 mb-4">{error || 'Player not found'}</p>
+          <button onClick={() => navigate(-1)} className="btn-primary">← Back</button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen">
-      <header className="bg-ocean-800 border-b border-ocean-700">
+    <div className="min-h-screen" style={{ backgroundColor: '#023E8A' }}>
+      <header className="border-b" style={{ backgroundColor: '#0077B6', borderColor: '#D4A574' }}>
         <div className="max-w-3xl mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
             <button onClick={() => navigate(-1)} className="text-sand-500 hover:text-white">
               ← Back
             </button>
-            <h1 className="text-xl font-bold">🍺 Drinker Profile</h1>
+            <h1 className="text-xl font-bold" style={{ color: '#D4A574' }}>🍺 Drinker Profile</h1>
           </div>
         </div>
       </header>
@@ -146,9 +157,7 @@ export default function PlayerProfile() {
                 {uploading ? (
                   <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
                 ) : (
-                  <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0016.07 6H17a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h.93z" />
-                  </svg>
+                  <span className="text-white text-xs">📷</span>
                 )}
               </label>
             </div>
@@ -157,6 +166,9 @@ export default function PlayerProfile() {
               <h2 className="text-2xl font-bold">{player.name}</h2>
               <div className="flex items-center gap-3 mt-1">
                 <span className="text-lg text-sand-500 font-medium">🍺 Drinker</span>
+                {player.status !== 'active' && (
+                  <span className="text-xs bg-red-600 px-2 py-0.5 rounded">INACTIVE</span>
+                )}
               </div>
               <div className="flex items-center gap-4 mt-2 text-sm text-sand-500">
                 <span>Rank: #{player.adp || 'N/A'}</span>
@@ -189,6 +201,50 @@ export default function PlayerProfile() {
               </div>
             </div>
           </div>
+
+          {/* Admin: Player Status Controls */}
+          {perms.isAdmin && (
+            <div className="border-t border-ocean-700 pt-6 mt-6">
+              <h3 className="text-lg font-semibold mb-3">⚙️ Player Status (Admin Only)</h3>
+              
+              <div className="flex items-center gap-4">
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleSetStatus('active')}
+                    disabled={saving || player.status === 'active'}
+                    className={`px-4 py-2 rounded font-medium ${
+                      player.status === 'active'
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-ocean-700 hover:bg-ocean-600'
+                    }`}
+                  >
+                    ✓ Active
+                  </button>
+                  <button
+                    onClick={() => handleSetStatus('out')}
+                    disabled={saving || player.status === 'out'}
+                    className={`px-4 py-2 rounded font-medium ${
+                      player.status === 'out'
+                        ? 'bg-red-600 text-white'
+                        : 'bg-ocean-700 hover:bg-ocean-600'
+                    }`}
+                  >
+                    ✗ Inactive
+                  </button>
+                </div>
+                
+                <span className="text-sm text-sand-500">
+                  {player.status === 'active' 
+                    ? 'Player is available for drafting' 
+                    : 'Player is NOT available for drafting'}
+                </span>
+              </div>
+              
+              <p className="text-xs text-sand-500 mt-2">
+                Note: Cannot inactivate a player who has been drafted in the current active season draft.
+              </p>
+            </div>
+          )}
         </div>
       </main>
     </div>

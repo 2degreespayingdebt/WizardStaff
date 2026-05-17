@@ -94,6 +94,37 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
   }
 });
 
+// Set player status (activate/inactivate)
+router.patch('/:id/status', async (req: AuthRequest, res: Response) => {
+  try {
+    const { status, seasonId } = req.body;
+    
+    if (!status || !['active', 'injured', 'out', 'suspended'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status' });
+    }
+    
+    // Check if player was drafted in current season
+    if (seasonId) {
+      const isDrafted = await playerModel.checkPlayerDraftedInCurrentSeason(req.params.id, seasonId);
+      if (isDrafted && status !== 'active') {
+        return res.status(400).json({ 
+          error: 'Cannot inactivate player that has been drafted in the current season' 
+        });
+      }
+    }
+    
+    const player = await playerModel.setPlayerStatus(req.params.id, status);
+    if (!player) {
+      return res.status(404).json({ error: 'Player not found' });
+    }
+    
+    res.json(player);
+  } catch (error) {
+    console.error('Update player status error:', error);
+    res.status(500).json({ error: 'Failed to update player status' });
+  }
+});
+
 // Create new custom drinker
 router.post('/', async (req: AuthRequest, res: Response) => {
   try {

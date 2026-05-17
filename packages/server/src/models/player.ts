@@ -161,3 +161,29 @@ export async function createDrinker(
   
   return result.rows[0];
 }
+
+export async function setPlayerStatus(
+  playerId: string,
+  status: 'active' | 'injured' | 'out' | 'suspended'
+): Promise<Player | null> {
+  const result = await query(
+    `UPDATE players SET status = $1 WHERE id = $2 RETURNING *`,
+    [status, playerId]
+  );
+  return result.rows[0] || null;
+}
+
+export async function checkPlayerDraftedInCurrentSeason(
+  playerId: string,
+  seasonId: string
+): Promise<boolean> {
+  // Check if player was drafted in this season's draft
+  const result = await query(
+    `SELECT dp.id FROM draft_picks dp
+     JOIN drafts d ON d.id = dp.draft_id
+     WHERE dp.player_id = $1 AND d.season_id = $2
+     LIMIT 1`,
+    [playerId, seasonId]
+  );
+  return result.rows.length > 0;
+}

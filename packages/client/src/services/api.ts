@@ -151,6 +151,17 @@ class ApiService {
     });
   }
 
+  async setPlayerStatus(
+    id: string,
+    status: 'active' | 'injured' | 'out' | 'suspended',
+    seasonId?: string
+  ): Promise<Player> {
+    return this.request<Player>(`/players/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status, seasonId }),
+    });
+  }
+
   async createDrinker(
     name: string,
     description?: string,
