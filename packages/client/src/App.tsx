@@ -8,6 +8,7 @@ import Draft from './pages/Draft';
 import PlayerProfile from './pages/PlayerProfile';
 import CreateDrinker from './pages/CreateDrinker';
 import BulkImport from './pages/BulkImport';
+import PlayerList from './pages/PlayerList';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, loading } = useRole();
@@ -62,6 +63,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <Draft />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/players"
+            element={
+              <ProtectedRoute>
+                <PlayerList />
               </ProtectedRoute>
             }
           />

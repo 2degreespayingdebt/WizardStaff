@@ -15,6 +15,10 @@ export default function PlayerProfile() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editProjectedPoints, setEditProjectedPoints] = useState('');
 
   useEffect(() => {
     if (id) loadPlayer(id);
@@ -29,6 +33,46 @@ export default function PlayerProfile() {
       setError((err as Error).message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleStartEdit = () => {
+    if (!player) return;
+    setEditName(player.name);
+    setEditDescription(player.description || '');
+    setEditProjectedPoints(player.projected_points || '');
+    setEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setEditing(false);
+    setEditName('');
+    setEditDescription('');
+    setEditProjectedPoints('');
+  };
+
+  const handleSaveEdit = async () => {
+    if (!player) return;
+
+    setSaving(true);
+    setError(null);
+
+    try {
+      const updates: Partial<Player> = {
+        name: editName,
+        description: editDescription,
+        projectedPoints: editProjectedPoints ? parseFloat(editProjectedPoints) : undefined,
+      };
+      const updated = await api.updatePlayer(player.id, updates);
+      setPlayer(updated);
+      setDescription(updated.description || '');
+      setEditing(false);
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 2000);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -69,22 +113,17 @@ export default function PlayerProfile() {
     if (!player || !e.target.files?.[0]) return;
     
     const file = e.target.files[0];
-    const reader = new FileReader();
+    setUploading(true);
+    setError(null);
     
-    reader.onload = async () => {
-      setUploading(true);
-      try {
-        const base64 = reader.result as string;
-        await api.updatePlayer(player.id, { profileImage: base64 });
-        setPlayer({ ...player, profileImage: base64 });
-      } catch (err) {
-        setError((err as Error).message);
-      } finally {
-        setUploading(false);
-      }
-    };
-    
-    reader.readAsDataURL(file);
+    try {
+      const updated = await api.uploadPlayerAvatar(player.id, file);
+      setPlayer({ ...player, profile_image: updated.profile_image });
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setUploading(false);
+    }
   };
 
   if (loading) {
@@ -127,6 +166,32 @@ export default function PlayerProfile() {
           >
             Logout
           </button>
+          {perms.isAdmin && !editing && (
+            <button
+              onClick={handleStartEdit}
+              className="btn-primary text-sm"
+            >
+              Edit
+            </button>
+          )}
+          {editing && (
+            <>
+              <button
+                onClick={handleCancelEdit}
+                disabled={saving}
+                className="btn-secondary text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveEdit}
+                disabled={saving}
+                className="btn-primary text-sm"
+              >
+                {saving ? 'Saving...' : 'Save'}
+              </button>
+            </>
+          )}
         </div>
       </header>
 
@@ -147,9 +212,9 @@ export default function PlayerProfile() {
           <div className="flex items-start gap-6 mb-6">
             <div className="relative">
               <div className="w-32 h-32 rounded-lg bg-ocean-700 flex items-center justify-center overflow-hidden">
-                {player.profileImage ? (
+                {player.profileImage || player.profile_image ? (
                   <img
-                    src={player.profileImage}
+                    src={player.profileImage || player.profile_image}
                     alt={player.name}
                     className="w-full h-full object-cover"
                   />
@@ -174,17 +239,55 @@ export default function PlayerProfile() {
             </div>
 
             <div className="flex-1">
-              <h2 className="text-xl md:text-2xl font-bold">{player.name}</h2>
-              <div className="flex items-center gap-3 mt-1">
-                <span className="text-lg text-sand-500 font-medium">🍺 Drinker</span>
-                {player.status !== 'active' && (
-                  <span className="text-xs bg-red-600 px-2 py-0.5 rounded">INACTIVE</span>
-                )}
-              </div>
-              <div className="flex items-center gap-3 md:p-4 mt-2 text-sm text-sand-500">
-                <span>Rank: #{player.adp || 'N/A'}</span>
-                <span>Proj: {player.projectedPoints?.toFixed(1) || 'N/A'} pts</span>
-              </div>
+              {editing ? (
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm text-sand-500 mb-1">Name</label>
+                    <input
+                      type="text"
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      className="w-full px-3 py-2 rounded bg-ocean-700 border border-ocean-600"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-sand-500 mb-1">Description</label>
+                    <textarea
+                      value={editDescription}
+                      onChange={(e) => setEditDescription(e.target.value)}
+                      placeholder="Write a short description about this drinker..."
+                      className="w-full h-24 resize-none px-3 py-2 rounded bg-ocean-700 border border-ocean-600"
+                      maxLength={500}
+                    />
+                    <p className="text-xs text-sand-500 mt-1">{editDescription.length}/500 characters</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-sand-500 mb-1">Projected Points</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={editProjectedPoints}
+                      onChange={(e) => setEditProjectedPoints(e.target.value)}
+                      placeholder="0.0"
+                      className="w-full px-3 py-2 rounded bg-ocean-700 border border-ocean-600"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <h2 className="text-xl md:text-2xl font-bold">{player.name}</h2>
+                  <div className="flex items-center gap-3 mt-1">
+                    <span className="text-lg text-sand-500 font-medium">🍺 Drinker</span>
+                    {player.status !== 'active' && (
+                      <span className="text-xs bg-red-600 px-2 py-0.5 rounded">INACTIVE</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3 md:p-4 mt-2 text-sm text-sand-500">
+                    <span>Rank: #{player.adp || 'N/A'}</span>
+                    <span>Proj: {player.projected_points || 'N/A'} pts</span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 

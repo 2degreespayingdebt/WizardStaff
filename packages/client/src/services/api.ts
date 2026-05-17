@@ -212,12 +212,37 @@ class ApiService {
 
   async updatePlayer(
     id: string,
-    updates: { profileImage?: string; description?: string }
+    updates: { 
+      profileImage?: string; 
+      description?: string;
+      name?: string;
+      projectedPoints?: number;
+    }
   ): Promise<Player> {
     return this.request<Player>(`/players/${id}`, {
       method: 'PUT',
       body: JSON.stringify(updates),
     });
+  }
+
+  async uploadPlayerAvatar(playerId: string, file: File): Promise<Player> {
+    const formData = new FormData();
+    formData.append('avatar', file);
+    
+    const response = await fetch(`${this.baseUrl}/players/${playerId}/avatar`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${this.token}`,
+      },
+      body: formData,
+    });
+    
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to upload avatar' }));
+      throw new Error(error.error || 'Failed to upload avatar');
+    }
+    
+    return response.json();
   }
 
   async setPlayerStatus(

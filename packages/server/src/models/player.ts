@@ -116,12 +116,21 @@ export async function getPlayerCount(): Promise<number> {
 
 export async function updatePlayer(
   id: string,
-  updates: { profileImage?: string; description?: string }
+  updates: { 
+    name?: string;
+    profileImage?: string; 
+    description?: string;
+    projectedPoints?: number;
+  }
 ): Promise<Player | null> {
   const fields: string[] = [];
   const values: unknown[] = [];
   let paramCount = 1;
 
+  if (updates.name !== undefined) {
+    fields.push(`name = $${paramCount++}`);
+    values.push(updates.name);
+  }
   if (updates.profileImage !== undefined) {
     fields.push(`profile_image = $${paramCount++}`);
     values.push(updates.profileImage);
@@ -129,6 +138,10 @@ export async function updatePlayer(
   if (updates.description !== undefined) {
     fields.push(`description = $${paramCount++}`);
     values.push(updates.description);
+  }
+  if (updates.projectedPoints !== undefined) {
+    fields.push(`projected_points = $${paramCount++}`);
+    values.push(updates.projectedPoints);
   }
 
   if (fields.length === 0) return findPlayerById(id);

@@ -109,11 +109,8 @@ export default function Leagues() {
               <Link to="/leagues" className="text-white hover:text-sand-500">
                 Leagues
               </Link>
-              <Link to="/players/new" className="text-sand-500 hover:text-white">
-                Create Drinker
-              </Link>
-              <Link to="/players/bulk-import" className="text-sand-500 hover:text-white">
-                Bulk Import
+              <Link to="/players" className="text-white hover:text-sand-500">
+                Players
               </Link>
             </nav>
           </div>

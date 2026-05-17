@@ -1,10 +1,31 @@
 import { Router, Response } from 'express';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
 import * as playerModel from '../models/player.js';
-import { AuthRequest, authenticateToken } from '../middleware/auth.js';
+import { AuthRequest, optionalAuth } from '../middleware/auth.js';
 
 const router = Router();
 
-router.use(authenticateToken);
+// Configure multer for player avatars
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = './uploads/players';
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, req.params.id + '-' + uniqueSuffix + ext);
+  },
+});
+
+const upload = multer({ storage });
+
+router.use(optionalAuth);
 
 // Get all players
 router.get('/', async (req: AuthRequest, res: Response) => {
@@ -77,12 +98,12 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
   }
 });
 
-// Update player (profile image & description)
+// Update player (name, profile image, description, projected points)
 router.put('/:id', async (req: AuthRequest, res: Response) => {
   try {
-    const { profileImage, description } = req.body;
+    const { name, profileImage, description, projectedPoints } = req.body;
     
-    const player = await playerModel.updatePlayer(req.params.id, { profileImage, description });
+    const player = await playerModel.updatePlayer(req.params.id, { name, profileImage, description, projectedPoints });
     if (!player) {
       return res.status(404).json({ error: 'Player not found' });
     }
@@ -91,6 +112,27 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
   } catch (error) {
     console.error('Update player error:', error);
     res.status(500).json({ error: 'Failed to update player' });
+  }
+});
+
+// Upload player avatar
+router.post('/:id/avatar', upload.single('avatar'), async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No avatar file uploaded' });
+    }
+
+    const avatarUrl = `/uploads/players/${req.file.filename}`;
+    const updated = await playerModel.updatePlayer(req.params.id, { profileImage: avatarUrl });
+    
+    if (!updated) {
+      return res.status(404).json({ error: 'Player not found' });
+    }
+    
+    res.json({ ...updated, profileImage: avatarUrl });
+  } catch (error) {
+    console.error('Upload avatar error:', error);
+    res.status(500).json({ error: 'Failed to upload avatar' });
   }
 });
 

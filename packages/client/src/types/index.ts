@@ -69,9 +69,10 @@ export interface Player {
   position: 'drinker';
   team: string | null;
   status: 'active' | 'injured' | 'out' | 'suspended';
-  projectedPoints: number | null;
-  adp: number | null;
-  profileImage?: string | null;
+  projected_points: string | null;
+  adp: string | null;
+  profileImage?: string | null;  // Legacy/client-side alias for profile_image
+  profile_image?: string | null;  // From API
   description?: string | null;
 }
 
