@@ -2,8 +2,65 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --beach-ocean: #0077B6;
+  --beach-ocean-light: #00B4D8;
+  --beach-ocean-dark: #023E8A;
+  --beach-sand: #D4A574;
+  --beach-sand-light: #E8D4B8;
+  --beach-sand-dark: #B8956A;
+  --beach-sky: #90E0EF;
+  --beach-white: #FAF9F6;
+}
+
 body {
-  @apply bg-gray-900 text-white;
+  @apply bg-ocean-900 text-white;
+}
+
+/* Beach Ocean Theme */
+.bg-ocean-900 {
+  background-color: #023E8A;
+}
+
+.bg-ocean-800 {
+  background-color: #0077B6;
+}
+
+.bg-ocean-700 {
+  background-color: #00B4D8;
+}
+
+.text-ocean-500 {
+  color: #90E0EF;
+}
+
+.border-ocean-700 {
+  border-color: #0077B6;
+}
+
+.hover\:bg-ocean-700:hover {
+  background-color: #00B4D8;
+}
+
+/* Beach Sand Theme */
+.bg-sand-800 {
+  background-color: #D4A574;
+}
+
+.bg-sand-700 {
+  background-color: #E8D4B8;
+}
+
+.bg-sand-600 {
+  background-color: #B8956A;
+}
+
+.text-sand-500 {
+  color: #E8D4B8;
+}
+
+.border-sand-700 {
+  border-color: #B8956A;
 }
 
 /* Custom scrollbar */
@@ -12,42 +69,77 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-gray-800;
+  background-color: #0077B6;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-gray-600 rounded;
+  background-color: #D4A574;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-500;
+  background-color: #B8956A;
 }
 
 /* Input styles */
 input, select, textarea {
-  @apply bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white placeholder-gray-500;
-  @apply focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500;
+  background-color: #0077B6;
+  border: 1px solid #D4A574;
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  color: #FAF9F6;
+}
+
+input::placeholder, textarea::placeholder {
+  color: #E8D4B8;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: #D4A574;
+  box-shadow: 0 0 0 1px #D4A574;
 }
 
 /* Button base */
 button {
-  @apply px-4 py-2 rounded font-medium transition-colors duration-200;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  transition: all 0.2s;
 }
 
 /* Button variants */
 .btn-primary {
-  @apply bg-emerald-600 text-white hover:bg-emerald-700;
+  background-color: #D4A574;
+  color: #023E8A;
+}
+
+.btn-primary:hover {
+  background-color: #E8D4B8;
 }
 
 .btn-secondary {
-  @apply bg-gray-700 text-white hover:bg-gray-600;
+  background-color: #0077B6;
+  color: #FAF9F6;
+}
+
+.btn-secondary:hover {
+  background-color: #00B4D8;
 }
 
 .btn-danger {
-  @apply bg-red-600 text-white hover:bg-red-700;
+  background-color: #B8956A;
+  color: #FAF9F6;
+}
+
+.btn-danger:hover {
+  background-color: #D4A574;
 }
 
 /* Card styles */
 .card {
-  @apply bg-gray-800 rounded-lg p-4 border border-gray-700;
+  background-color: #0077B6;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  border: 2px solid #D4A574;
 }
