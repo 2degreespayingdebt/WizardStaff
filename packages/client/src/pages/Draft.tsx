@@ -183,7 +183,7 @@ export default function Draft() {
             </Link>
           </div>
           
-          {/* Draft Status */}
+          {/* Draft Status & Logout */}
           <div className="flex items-center gap-3 md:p-4">
             <div className="text-right">
               <p className="text-sm text-sand-500">
@@ -221,6 +221,19 @@ export default function Draft() {
                 ↩ Undo
               </button>
             )}
+            
+            {/* Logout Button */}
+            <button
+              onClick={() => {
+                localStorage.removeItem('wizardstaff_role');
+                localStorage.removeItem('wizardstaff_auth');
+                localStorage.removeItem('wizardstaff_token');
+                navigate('/login');
+              }}
+              className="btn-secondary text-sm"
+            >
+              Logout
+            </button>
             
             <div className={`text-xl md:text-2xl font-mono ${timeLeft <= 10 ? 'text-red-500' : 'text-white'}`}>
               {timeLeft}s

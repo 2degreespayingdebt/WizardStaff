@@ -85,6 +85,19 @@ export default function Leagues() {
               </Link>
             </nav>
           </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => {
+                localStorage.removeItem('wizardstaff_role');
+                localStorage.removeItem('wizardstaff_auth');
+                localStorage.removeItem('wizardstaff_token');
+                navigate('/login');
+              }}
+              className="btn-secondary text-sm"
+            >
+              Logout
+            </button>
+          </div>
         </div>
       </header>
 

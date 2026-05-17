@@ -34,6 +34,43 @@ export default function League() {
   const [teamAvatar, setTeamAvatar] = useState<File | null>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
   
+  // Drag and drop state
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  
+  // Handle drag start
+  const handleDragStart = (index: number) => {
+    setDraggedIndex(index);
+  };
+  
+  // Handle drag over (required to allow dropping)
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+  
+  // Handle drop - reorder teams
+  const handleDrop = (targetIndex: number) => {
+    if (draggedIndex === null || draggedIndex === targetIndex) return;
+    
+    const newTeams = [...teams];
+    const [removed] = newTeams.splice(draggedIndex, 1);
+    newTeams.splice(targetIndex, 0, removed);
+    setTeams(newTeams);
+    setDraggedIndex(null);
+    
+    // Save new order to database
+    saveTeamOrder(newTeams);
+  };
+  
+  // Save team order to backend
+  const saveTeamOrder = async (orderedTeams: Team[]) => {
+    try {
+      const order = orderedTeams.map((t, i) => ({ id: t.id, order: i + 1 }));
+      await api.updateTeamOrder(id!, order);
+    } catch (err) {
+      console.error('Failed to save team order:', err);
+    }
+  };
+  
   // Season form state
   const [showSeasonForm, setShowSeasonForm] = useState(false);
   const [editingSeason, setEditingSeason] = useState<Season | null>(null);
@@ -263,13 +300,28 @@ export default function League() {
       {/* Header */}
       <header className="border-b" style={{ backgroundColor: '#0077B6', borderColor: '#D4A574' }}>
         <div className="max-w-full mx-auto px-3 md:px-4 py-4">
-          <div className="flex items-center gap-3 md:p-4">
-            <Link to="/" className="text-sand-500 hover:text-white">Dashboard</Link>
-            <Link to="/leagues" className="text-sand-500 hover:text-white">Leagues</Link>
-            <button onClick={() => navigate('/leagues')} className="text-sand-500 hover:text-white">
-              ← Back
-            </button>
-            <h1 className="text-lg md:text-xl font-bold" style={{ color: '#D4A574' }}>{league.name}</h1>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3 md:p-4">
+              <Link to="/" className="text-sand-500 hover:text-white">Dashboard</Link>
+              <Link to="/leagues" className="text-sand-500 hover:text-white">Leagues</Link>
+              <button onClick={() => navigate('/leagues')} className="text-sand-500 hover:text-white">
+                ← Back
+              </button>
+              <h1 className="text-lg md:text-xl font-bold" style={{ color: '#D4A574' }}>{league.name}</h1>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => {
+                  localStorage.removeItem('wizardstaff_role');
+                  localStorage.removeItem('wizardstaff_auth');
+                  localStorage.removeItem('wizardstaff_token');
+                  navigate('/login');
+                }}
+                className="btn-secondary text-sm"
+              >
+                Logout
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -406,7 +458,13 @@ export default function League() {
                 {teams.map((team, index) => (
                   <div
                     key={team.id}
-                    className="flex flex-col items-center p-4 bg-ocean-800 rounded border border-ocean-700"
+                    draggable
+                    onDragStart={() => handleDragStart(index)}
+                    onDragOver={handleDragOver}
+                    onDrop={() => handleDrop(index)}
+                    className={`flex flex-col items-center p-4 bg-ocean-800 rounded border border-ocean-700 cursor-move ${
+                      draggedIndex === index ? 'opacity-50' : ''
+                    }`}
                   >
                     <span className="text-sand-500 text-sm">#{index + 1}</span>
                     {team.avatar_url ? (

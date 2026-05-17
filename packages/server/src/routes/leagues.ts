@@ -268,4 +268,25 @@ router.post('/:id/teams', async (req: AuthRequest, res: Response) => {
   }
 });
 
+// Update team order
+router.put('/:id/teams/order', async (req: AuthRequest, res: Response) => {
+  try {
+    const { order } = req.body;
+    
+    if (!order || !Array.isArray(order)) {
+      return res.status(400).json({ error: 'Order array required' });
+    }
+    
+    // Update each team's order in the database
+    for (const item of order) {
+      await teamModel.updateTeamOrder(item.id, item.order);
+    }
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Update team order error:', error);
+    res.status(500).json({ error: 'Failed to update team order' });
+  }
+});
+
 export default router;

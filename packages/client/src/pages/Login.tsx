@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { api } from '../services/api';
 
 type UserRole = 'admin' | 'teamLead';
 
@@ -8,7 +9,8 @@ const TEAM_LEAD_PASSWORD = 'Surfside';
 
 export default function Login() {
   const navigate = useNavigate();
-  const [password, setPassword] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
+  const [teamLeadPassword, setTeamLeadPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -30,15 +32,25 @@ export default function Login() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent, role: UserRole) => {
+  const handleAdminSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const correctPassword = role === 'admin' ? ADMIN_PASSWORD : TEAM_LEAD_PASSWORD;
-    
-    if (password === correctPassword) {
-      handleLogin(role);
+    if (adminPassword === ADMIN_PASSWORD) {
+      handleLogin('admin');
     } else {
-      setError('Invalid password. Please try again.');
+      setError('Invalid admin password. Please try again.');
+      setAdminPassword('');
+    }
+  };
+
+  const handleTeamLeadSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (teamLeadPassword === TEAM_LEAD_PASSWORD) {
+      handleLogin('teamLead');
+    } else {
+      setError('Invalid team lead password. Please try again.');
+      setTeamLeadPassword('');
     }
   };
 
@@ -66,11 +78,11 @@ export default function Login() {
               <p className="text-sm text-sand-500">Full access to all features</p>
             </div>
             
-            <form onSubmit={(e) => handleSubmit(e, 'admin')} className="space-y-3">
+            <form onSubmit={handleAdminSubmit} className="space-y-3">
               <input
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={adminPassword}
+                onChange={(e) => setAdminPassword(e.target.value)}
                 placeholder="Enter admin password"
                 className="w-full"
               />
@@ -93,11 +105,11 @@ export default function Login() {
               <p className="text-sm text-sand-500">Limited access for team management</p>
             </div>
             
-            <form onSubmit={(e) => handleSubmit(e, 'teamLead')} className="space-y-3">
+            <form onSubmit={handleTeamLeadSubmit} className="space-y-3">
               <input
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={teamLeadPassword}
+                onChange={(e) => setTeamLeadPassword(e.target.value)}
                 placeholder="Enter team lead password"
                 className="w-full"
               />

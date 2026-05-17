@@ -150,7 +150,7 @@ export default function BulkImport() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#023E8A' }}>
       <header className="border-b" style={{ backgroundColor: '#0077B6', borderColor: '#D4A574' }}>
-        <div className="max-w-6xl mx-auto px-3 md:px-4 py-4">
+        <div className="max-w-6xl mx-auto px-3 md:px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3 md:p-4">
             <button onClick={() => navigate('/leagues')} className="text-sand-500 hover:text-white">
               ← Back
@@ -159,6 +159,17 @@ export default function BulkImport() {
               📥 Bulk Import Players
             </h1>
           </div>
+          <button
+            onClick={() => {
+              localStorage.removeItem('wizardstaff_role');
+              localStorage.removeItem('wizardstaff_auth');
+              localStorage.removeItem('wizardstaff_token');
+              navigate('/login');
+            }}
+            className="btn-secondary text-sm"
+          >
+            Logout
+          </button>
         </div>
       </header>
 

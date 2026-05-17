@@ -148,6 +148,13 @@ class ApiService {
     return response.json();
   }
 
+  async updateTeamOrder(leagueId: string, order: Array<{ id: string; order: number }>): Promise<void> {
+    return this.request<void>(`/leagues/${leagueId}/teams/order`, {
+      method: 'PUT',
+      body: JSON.stringify({ order }),
+    });
+  }
+
   async createLeague(data: {
     name: string;
     maxTeams?: number;

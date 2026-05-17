@@ -198,3 +198,7 @@ export async function updateTeam(
   );
   return result.rows[0] || null;
 }
+
+export async function updateTeamOrder(teamId: string, order: number): Promise<void> {
+  await query('UPDATE teams SET team_order = $1 WHERE id = $2', [order, teamId]);
+}
