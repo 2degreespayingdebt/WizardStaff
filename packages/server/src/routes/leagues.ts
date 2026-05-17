@@ -51,8 +51,10 @@ router.get('/', async (req: AuthRequest, res: Response) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
   
+  // If no token, return all leagues (public view for admin dashboard)
   if (!token) {
-    return res.json([]); // Return empty if not authenticated
+    const leagues = await leagueModel.findAllLeagues();
+    return res.json(leagues);
   }
   
   try {

@@ -66,6 +66,13 @@ export async function findLeagueById(id: string): Promise<LeagueWithSettings | n
   return mapLeagueWithSettings(result.rows[0]);
 }
 
+export async function findAllLeagues(): Promise<LeagueWithSettings[]> {
+  const result = await query(
+    `SELECT * FROM leagues ORDER BY created_at DESC`
+  );
+  return result.rows.map(mapLeagueWithSettings);
+}
+
 export async function findLeaguesByUser(userId: string): Promise<LeagueWithSettings[]> {
   const result = await query(
     `SELECT l.* FROM leagues l
