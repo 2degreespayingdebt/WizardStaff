@@ -3,10 +3,12 @@ import cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import dotenv from 'dotenv';
+import path from 'path';
 
 import authRoutes from './routes/auth.js';
 import leagueRoutes from './routes/leagues.js';
 import playerRoutes from './routes/players.js';
+import teamRoutes from './routes/teams.js';
 import { authenticateToken, AuthRequest } from './middleware/auth.js';
 import * as seasonModel from './models/season.js';
 import * as draftModel from './models/draft.js';
@@ -26,6 +28,9 @@ const io = new Server(httpServer, {
 app.use(cors());
 app.use(express.json());
 
+// Serve uploaded files
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -35,6 +40,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/leagues', leagueRoutes);
 app.use('/api/players', playerRoutes);
+app.use('/api/teams', teamRoutes);
 
 // Get user's teams
 app.get('/api/teams', authenticateToken, async (req: AuthRequest, res) => {

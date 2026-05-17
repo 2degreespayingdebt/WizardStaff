@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
@@ -31,6 +31,8 @@ export default function League() {
   const [showTeamForm, setShowTeamForm] = useState(false);
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
   const [teamName, setTeamName] = useState('');
+  const [teamAvatar, setTeamAvatar] = useState<File | null>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
   
   // Season form state
   const [showSeasonForm, setShowSeasonForm] = useState(false);
@@ -95,9 +97,19 @@ export default function League() {
     if (!teamName.trim() || !editingTeam) return;
     try {
       setSaving(true);
+      
+      let avatarUrl = editingTeam.avatarUrl;
+      
+      // Upload avatar if selected
+      if (teamAvatar) {
+        const result = await api.uploadTeamAvatar(editingTeam.id, teamAvatar);
+        avatarUrl = result.avatarUrl;
+      }
+      
       const updated = await api.updateTeam(editingTeam.id, teamName);
-      setTeams(teams.map(t => t.id === updated.id ? updated : t));
+      setTeams(teams.map(t => t.id === updated.id ? { ...t, ...updated, avatarUrl } : t));
       setTeamName('');
+      setTeamAvatar(null);
       setEditingTeam(null);
       setShowTeamForm(false);
     } catch (err) {
@@ -317,31 +329,61 @@ export default function League() {
                 <h4 className="font-medium mb-3">
                   {editingTeam ? 'Edit Team' : 'Add New Team'}
                 </h4>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={teamName}
-                    onChange={(e) => setTeamName(e.target.value)}
-                    placeholder="Team name"
-                    className="flex-1"
-                  />
-                  <button
-                    onClick={editingTeam ? handleUpdateTeam : handleCreateTeam}
-                    disabled={saving || !teamName.trim()}
-                    className="btn-primary"
-                  >
-                    {saving ? 'Saving...' : editingTeam ? 'Update' : 'Add'}
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowTeamForm(false);
-                      setEditingTeam(null);
-                      setTeamName('');
-                    }}
-                    className="btn-secondary"
-                  >
-                    Cancel
-                  </button>
+                <div className="space-y-3">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={teamName}
+                      onChange={(e) => setTeamName(e.target.value)}
+                      placeholder="Team name"
+                      className="flex-1"
+                    />
+                    <button
+                      onClick={editingTeam ? handleUpdateTeam : handleCreateTeam}
+                      disabled={saving || !teamName.trim()}
+                      className="btn-primary"
+                    >
+                      {saving ? 'Saving...' : editingTeam ? 'Update' : 'Add'}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowTeamForm(false);
+                        setEditingTeam(null);
+                        setTeamName('');
+                        setTeamAvatar(null);
+                      }}
+                      className="btn-secondary"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                  
+                  {/* Avatar upload */}
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="file"
+                      ref={avatarInputRef}
+                      accept="image/*"
+                      onChange={(e) => setTeamAvatar(e.target.files?.[0] || null)}
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => avatarInputRef.current?.click()}
+                      className="text-sm text-sand-500 hover:text-white"
+                    >
+                      {teamAvatar ? `📷 ${teamAvatar.name}` : '📷 Upload Avatar'}
+                    </button>
+                    {teamAvatar && (
+                      <button
+                        type="button"
+                        onClick={() => setTeamAvatar(null)}
+                        className="text-sm text-red-500"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
@@ -357,6 +399,17 @@ export default function League() {
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-sand-500 w-6">#{index + 1}</span>
+                      {team.avatarUrl ? (
+                        <img
+                          src={team.avatarUrl}
+                          alt={team.name}
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-ocean-700 flex items-center justify-center">
+                          🏈
+                        </div>
+                      )}
                       <div>
                         <p className="font-medium">{team.name}</p>
                         <p className="text-sm text-sand-500">

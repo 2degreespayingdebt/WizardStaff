@@ -465,17 +465,6 @@ export default function Draft() {
             </p>
           )}
         </div>
-                  Select a drinker to draft
-                </p>
-              )}
-            </div>
-          )}
-          
-          {/* Roster Preview */}
-          <div className="space-y-2">
-            <p className="text-sm text-sand-500">Your drafted drinkers will appear here</p>
-          </div>
-        </div>
       </div>
     </div>
   );

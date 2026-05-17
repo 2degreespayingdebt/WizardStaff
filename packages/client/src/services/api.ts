@@ -92,6 +92,39 @@ class ApiService {
     return this.request<League>(`/leagues/${id}`);
   }
 
+  async createTeam(leagueId: string, teamName: string): Promise<Team> {
+    return this.request<Team>(`/leagues/${leagueId}/teams`, {
+      method: 'POST',
+      body: JSON.stringify({ teamName }),
+    });
+  }
+
+  async updateTeam(teamId: string, teamName: string): Promise<Team> {
+    return this.request<Team>(`/teams/${teamId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ teamName }),
+    });
+  }
+
+  async uploadTeamAvatar(teamId: string, file: File): Promise<{ avatarUrl: string }> {
+    const formData = new FormData();
+    formData.append('avatar', file);
+    
+    const token = this.getToken();
+    const response = await fetch(`${API_BASE}/teams/${teamId}/avatar`, {
+      method: 'POST',
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+      body: formData,
+    });
+    
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to upload avatar' }));
+      throw new Error(error.error || 'Failed to upload avatar');
+    }
+    
+    return response.json();
+  }
+
   async createLeague(data: {
     name: string;
     maxTeams?: number;
@@ -208,6 +241,22 @@ class ApiService {
       method: 'POST',
       body: JSON.stringify({ change }),
     });
+  }
+
+  // Seasons
+  async getSeasons(leagueId: string): Promise<Season[]> {
+    return this.request<Season[]>(`/leagues/${leagueId}/seasons`);
+  }
+
+  async createSeason(leagueId: string, name: string, isActive?: boolean): Promise<Season> {
+    return this.request<Season>(`/leagues/${leagueId}/seasons`, {
+      method: 'POST',
+      body: JSON.stringify({ name, isActive }),
+    });
+  }
+
+  async getSeasonTeams(seasonId: string): Promise<SeasonTeam[]> {
+    return this.request<SeasonTeam[]>(`/leagues/seasons/${seasonId}/teams`);
   }
 
   // Get draft ID for a season (creates if not exists)

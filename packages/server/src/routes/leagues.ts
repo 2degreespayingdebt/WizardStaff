@@ -1,33 +1,38 @@
 import { Router, Response } from 'express';
 import * as leagueModel from '../models/league.js';
 import * as teamModel from '../models/team.js';
-import { AuthRequest, authenticateToken } from '../middleware/auth.js';
+import * as seasonModel from '../models/season.js';
+import { AuthRequest, optionalAuth } from '../middleware/auth.js';
 
 const router = Router();
 
-// All routes require authentication
-router.use(authenticateToken);
+// Use optionalAuth middleware - won't block without token
+router.use(optionalAuth);
 
-// Create league
+// Create league - public (no auth required)
 router.post('/', async (req: AuthRequest, res: Response) => {
   try {
-    const { name, maxTeams, scoringFormat, rosterPositions } = req.body;
+    const { name } = req.body;
     
     if (!name) {
       return res.status(400).json({ error: 'League name required' });
     }
     
+    // Use authenticated user or fall back to demo user
+    const commissionerId = req.userId || 'fcb5a616-deec-4153-baa9-3f8659f805a1';
+    
     const league = await leagueModel.createLeague(
       name,
-      req.userId!,
-      { maxTeams, scoringFormat, rosterPositions }
+      commissionerId,
+      {}
     );
     
     // Create team for commissioner
+    const teamName = commissionerId + ' Team';
     await teamModel.createTeam(
       league.id,
-      req.userId!,
-      `${req.userId}'s Team`
+      commissionerId,
+      teamName
     );
     
     // Generate invite code
@@ -42,6 +47,14 @@ router.post('/', async (req: AuthRequest, res: Response) => {
 
 // Get user's leagues
 router.get('/', async (req: AuthRequest, res: Response) => {
+  // Require auth for getting leagues
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  
+  if (!token) {
+    return res.json([]); // Return empty if not authenticated
+  }
+  
   try {
     const leagues = await leagueModel.findLeaguesByUser(req.userId!);
     res.json(leagues);
@@ -83,11 +96,14 @@ router.post('/join', async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ error: 'Invalid or expired invite code' });
     }
     
+    // Use authenticated user or fall back to demo user
+    const userId = req.userId || 'fcb5a616-deec-4153-baa9-3f8659f805a1';
+    
     // Create team for user
     const team = await teamModel.createTeam(
       league.id,
-      req.userId!,
-      `${req.userId}'s Team`
+      userId,
+      userId + ' Team'
     );
     
     res.status(201).json({ league, team });
@@ -180,6 +196,75 @@ router.post('/seasons/:seasonId/teams/:teamId/drinks', async (req: AuthRequest, 
   } catch (error) {
     console.error('Update drink count error:', error);
     res.status(500).json({ error: 'Failed to update drink count' });
+  }
+});
+
+// Get seasons for a league
+router.get('/:id/seasons', async (req: AuthRequest, res: Response) => {
+  try {
+    const seasons = await seasonModel.findSeasonsByLeague(req.params.id);
+    res.json(seasons);
+  } catch (error) {
+    console.error('Get seasons error:', error);
+    res.status(500).json({ error: 'Failed to get seasons' });
+  }
+});
+
+// Create season
+router.post('/:id/seasons', async (req: AuthRequest, res: Response) => {
+  try {
+    const { name, isActive } = req.body;
+    
+    if (!name) {
+      return res.status(400).json({ error: 'Season name required' });
+    }
+    
+    const season = await seasonModel.createSeason(req.params.id, name, isActive);
+    res.status(201).json(season);
+  } catch (error) {
+    console.error('Create season error:', error);
+    res.status(500).json({ error: 'Failed to create season' });
+  }
+});
+
+// Get teams for a season
+router.get('/seasons/:seasonId/teams', async (req: AuthRequest, res: Response) => {
+  try {
+    const teams = await seasonModel.getSeasonTeams(req.params.seasonId);
+    res.json(teams);
+  } catch (error) {
+    console.error('Get season teams error:', error);
+    res.status(500).json({ error: 'Failed to get season teams' });
+  }
+});
+
+// Add team to league
+router.post('/:id/teams', async (req: AuthRequest, res: Response) => {
+  try {
+    const { teamName } = req.body;
+    
+    if (!teamName) {
+      return res.status(400).json({ error: 'Team name required' });
+    }
+    
+    const league = await leagueModel.findLeagueById(req.params.id);
+    if (!league) {
+      return res.status(404).json({ error: 'League not found' });
+    }
+    
+    // Use authenticated user or fall back to demo user
+    const userId = req.userId || 'fcb5a616-deec-4153-baa9-3f8659f805a1';
+    
+    const team = await teamModel.createTeam(
+      league.id,
+      userId,
+      teamName
+    );
+    
+    res.status(201).json(team);
+  } catch (error) {
+    console.error('Create team error:', error);
+    res.status(500).json({ error: 'Failed to create team' });
   }
 });
 

@@ -5,6 +5,7 @@ export interface Team {
   leagueId: string;
   managerId: string | null;
   name: string;
+  avatarUrl: string | null;
   createdAt: Date;
 }
 
@@ -44,14 +45,25 @@ export async function createTeam(
       throw new Error('League is full');
     }
     
-    // Check if user already has a team in this league
-    const existingTeam = await client.query(
-      'SELECT id FROM teams WHERE league_id = $1 AND manager_id = $2',
-      [leagueId, managerId]
-    );
-    
-    if (existingTeam.rows.length > 0) {
-      throw new Error('User already has a team in this league');
+    // Check if user already has a team in this league (only if managerId provided and not commissioner)
+    if (managerId) {
+      const leagueResult = await client.query(
+        'SELECT commissioner_id FROM leagues WHERE id = $1',
+        [leagueId]
+      );
+      const commissionerId = leagueResult.rows[0]?.commissioner_id;
+      
+      // Only check for existing team if not the commissioner
+      if (managerId !== commissionerId) {
+        const existingTeam = await client.query(
+          'SELECT id FROM teams WHERE league_id = $1 AND manager_id = $2',
+          [leagueId, managerId]
+        );
+        
+        if (existingTeam.rows.length > 0) {
+          throw new Error('User already has a team in this league');
+        }
+      }
     }
     
     // Create team
@@ -156,6 +168,33 @@ export async function updateRosterSlot(
   const result = await query(
     'UPDATE roster_slots SET player_id = $1 WHERE id = $2 RETURNING *',
     [playerId, slotId]
+  );
+  return result.rows[0] || null;
+}
+
+export async function updateTeam(
+  id: string,
+  updates: { teamName?: string; avatarUrl?: string }
+): Promise<Team | null> {
+  const fields: string[] = [];
+  const values: unknown[] = [];
+  let paramCount = 1;
+
+  if (updates.teamName !== undefined) {
+    fields.push(`name = $${paramCount++}`);
+    values.push(updates.teamName);
+  }
+  if (updates.avatarUrl !== undefined) {
+    fields.push(`avatar_url = $${paramCount++}`);
+    values.push(updates.avatarUrl);
+  }
+
+  if (fields.length === 0) return findTeamById(id);
+
+  values.push(id);
+  const result = await query(
+    `UPDATE teams SET ${fields.join(', ')} WHERE id = $${paramCount} RETURNING *`,
+    values
   );
   return result.rows[0] || null;
 }

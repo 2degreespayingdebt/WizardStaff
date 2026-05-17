@@ -11,8 +11,6 @@ export default function Leagues() {
   const [showJoin, setShowJoin] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
-    maxTeams: '10',
-    scoringFormat: 'standard',
   });
   const [joinCode, setJoinCode] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -41,8 +39,6 @@ export default function Leagues() {
     try {
       const league = await api.createLeague({
         name: formData.name,
-        maxTeams: parseInt(formData.maxTeams),
-        scoringFormat: formData.scoringFormat,
       });
       navigate(`/leagues/${league.id}`);
     } catch (err) {
@@ -123,44 +119,6 @@ export default function Leagues() {
                   className="w-full"
                   placeholder="My Fantasy League"
                 />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 md:p-4">
-                <div>
-                  <label className="block text-sm text-sand-500 mb-1">
-                    Max Teams
-                  </label>
-                  <select
-                    value={formData.maxTeams}
-                    onChange={(e) =>
-                      setFormData({ ...formData, maxTeams: e.target.value })
-                    }
-                    className="w-full"
-                  >
-                    {[8, 10, 12, 14, 16].map((n) => (
-                      <option key={n} value={n}>
-                        {n} Teams
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm text-sand-500 mb-1">
-                    Scoring Format
-                  </label>
-                  <select
-                    value={formData.scoringFormat}
-                    onChange={(e) =>
-                      setFormData({ ...formData, scoringFormat: e.target.value })
-                    }
-                    className="w-full"
-                  >
-                    <option value="standard">Standard</option>
-                    <option value="ppr">PPR</option>
-                    <option value="half-ppr">Half-PPR</option>
-                  </select>
-                </div>
               </div>
 
               {error && <div className="text-red-500 text-sm">{error}</div>}

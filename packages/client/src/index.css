@@ -83,11 +83,6 @@ input:focus, select:focus, textarea:focus {
     gap: 0.5rem;
   }
   
-  /* Reduce panel sizes on mobile */
-  .w-1\\/3 {
-    width: 100%;
-  }
-  
   /* Mobile-friendly grid */
   .grid-cols-1 {
     grid-template-columns: 1fr;
@@ -166,7 +161,7 @@ input:focus, select:focus, textarea:focus {
   border-color: #0077B6;
 }
 
-.hover\:bg-ocean-700:hover {
+.hover:bg-ocean-700:hover {
   background-color: #00B4D8;
 }
 

@@ -28,6 +28,26 @@ export function authenticateToken(
   }
 }
 
+// Optional auth - does NOT reject if no token, just sets userId if valid
+export function optionalAuth(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
+      req.userId = decoded.userId;
+    } catch {
+      // Invalid token, but we don't care - continue without userId
+    }
+  }
+  next();
+}
+
 export function generateToken(userId: string): string {
   return jwt.sign({ userId }, JWT_SECRET, { expiresIn: '7d' });
 }
