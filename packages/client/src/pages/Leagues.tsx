@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import type { League } from '../types';
 
@@ -70,6 +70,20 @@ export default function Leagues() {
         <div className="max-w-6xl mx-auto px-3 md:px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3 md:p-4">
             <h1 className="text-lg md:text-xl font-bold text-sand-500">🪄 WizardStaff</h1>
+            <nav className="flex gap-3 md:p-4 ml-8">
+              <Link to="/" className="text-sand-500 hover:text-white">
+                Dashboard
+              </Link>
+              <Link to="/leagues" className="text-white hover:text-sand-500">
+                Leagues
+              </Link>
+              <Link to="/players/new" className="text-sand-500 hover:text-white">
+                Create Drinker
+              </Link>
+              <Link to="/players/bulk-import" className="text-sand-500 hover:text-white">
+                Bulk Import
+              </Link>
+            </nav>
           </div>
         </div>
       </header>

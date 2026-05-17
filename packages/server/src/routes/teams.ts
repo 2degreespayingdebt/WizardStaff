@@ -39,6 +39,39 @@ const upload = multer({
 
 router.use(optionalAuth);
 
+// Create team with avatar (multipart form)
+router.post('/with-avatar', upload.single('avatar'), async (req: AuthRequest, res: Response) => {
+  try {
+    const { leagueId, teamName } = req.body;
+    
+    if (!leagueId || !teamName) {
+      return res.status(400).json({ error: 'League ID and team name required' });
+    }
+    
+    // Use authenticated user or fall back to demo user
+    const userId = req.userId || 'fcb5a616-deec-4153-baa9-3f8659f805a1';
+    
+    // Create the team
+    const team = await teamModel.createTeam(
+      leagueId,
+      userId,
+      teamName
+    );
+    
+    // If avatar uploaded, update the team with avatar URL
+    let avatarUrl = undefined;
+    if (req.file) {
+      avatarUrl = `/uploads/teams/${req.file.filename}`;
+      await teamModel.updateTeam(team.id, { avatarUrl });
+    }
+    
+    res.status(201).json({ ...team, avatar_url: avatarUrl });
+  } catch (error) {
+    console.error('Create team with avatar error:', error);
+    res.status(500).json({ error: 'Failed to create team' });
+  }
+});
+
 // Upload team avatar
 router.post('/:id/avatar', upload.single('avatar'), async (req: AuthRequest, res: Response) => {
   try {

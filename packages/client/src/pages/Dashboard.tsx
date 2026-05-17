@@ -45,6 +45,12 @@ export default function Dashboard() {
               <Link to="/leagues" className="text-sand-500 hover:text-white">
                 Leagues
               </Link>
+              <Link to="/players/new" className="text-sand-500 hover:text-white">
+                Create Drinker
+              </Link>
+              <Link to="/players/bulk-import" className="text-sand-500 hover:text-white">
+                Bulk Import
+              </Link>
             </nav>
           </div>
           <div className="flex items-center gap-3 md:p-4">

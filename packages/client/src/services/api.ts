@@ -99,6 +99,29 @@ class ApiService {
     });
   }
 
+  async createTeamWithAvatar(leagueId: string, teamName: string, avatarFile?: File): Promise<Team> {
+    const formData = new FormData();
+    formData.append('leagueId', leagueId);
+    formData.append('teamName', teamName);
+    if (avatarFile) {
+      formData.append('avatar', avatarFile);
+    }
+    
+    const token = this.getToken();
+    const response = await fetch(`${API_BASE}/teams/with-avatar`, {
+      method: 'POST',
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+      body: formData,
+    });
+    
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to create team' }));
+      throw new Error(error.error || 'Failed to create team');
+    }
+    
+    return response.json();
+  }
+
   async updateTeam(teamId: string, teamName: string): Promise<Team> {
     return this.request<Team>(`/teams/${teamId}`, {
       method: 'PUT',

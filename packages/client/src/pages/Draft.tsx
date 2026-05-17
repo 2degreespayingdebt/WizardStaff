@@ -146,6 +146,8 @@ export default function Draft() {
       <header className="bg-ocean-800 border-b border-ocean-700">
         <div className="max-w-7xl mx-auto px-3 md:px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3 md:p-4">
+            <Link to="/" className="text-sand-500 hover:text-white">Dashboard</Link>
+            <Link to="/leagues" className="text-sand-500 hover:text-white">Leagues</Link>
             <button onClick={() => navigate('/leagues')} className="text-sand-500 hover:text-white">
               ← Back
             </button>

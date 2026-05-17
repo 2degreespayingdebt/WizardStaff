@@ -82,9 +82,18 @@ export default function League() {
     if (!teamName.trim() || !id) return;
     try {
       setSaving(true);
-      const team = await api.createTeam(id, teamName);
+      
+      // Upload avatar if selected, otherwise just create team
+      let team;
+      if (teamAvatar) {
+        team = await api.createTeamWithAvatar(id, teamName, teamAvatar);
+      } else {
+        team = await api.createTeam(id, teamName);
+      }
+      
       setTeams([...teams, team]);
       setTeamName('');
+      setTeamAvatar(null);
       setShowTeamForm(false);
     } catch (err) {
       setError((err as Error).message);
@@ -98,7 +107,7 @@ export default function League() {
     try {
       setSaving(true);
       
-      let avatarUrl = editingTeam.avatarUrl;
+      let avatarUrl = editingTeam.avatar_url;
       
       // Upload avatar if selected
       if (teamAvatar) {
@@ -253,8 +262,10 @@ export default function League() {
     <div className="min-h-screen" style={{ backgroundColor: '#023E8A' }}>
       {/* Header */}
       <header className="border-b" style={{ backgroundColor: '#0077B6', borderColor: '#D4A574' }}>
-        <div className="max-w-6xl mx-auto px-3 md:px-4 py-4">
+        <div className="max-w-full mx-auto px-3 md:px-4 py-4">
           <div className="flex items-center gap-3 md:p-4">
+            <Link to="/" className="text-sand-500 hover:text-white">Dashboard</Link>
+            <Link to="/leagues" className="text-sand-500 hover:text-white">Leagues</Link>
             <button onClick={() => navigate('/leagues')} className="text-sand-500 hover:text-white">
               ← Back
             </button>
@@ -263,7 +274,7 @@ export default function League() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-2 md:px-3 md:px-4 py-4 md:py-4 md:py-8">
+      <main className="max-w-full mx-auto px-2 md:px-3 md:px-4 py-4 md:py-4 md:py-8">
         <div className="card mb-4 md:mb-6">
           <h2 className="text-lg md:text-xl md:text-xl md:text-2xl font-bold">{league.name}</h2>
           <p className="text-sand-500">
@@ -391,32 +402,25 @@ export default function League() {
             {teams.length === 0 ? (
               <p className="text-sand-500">No teams yet.</p>
             ) : (
-              <div className="space-y-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                 {teams.map((team, index) => (
                   <div
                     key={team.id}
-                    className="flex items-center justify-between p-3 bg-ocean-800 rounded"
+                    className="flex flex-col items-center p-4 bg-ocean-800 rounded border border-ocean-700"
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="text-sand-500 w-6">#{index + 1}</span>
-                      {team.avatarUrl ? (
-                        <img
-                          src={team.avatarUrl}
-                          alt={team.name}
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-ocean-700 flex items-center justify-center">
-                          🏈
-                        </div>
-                      )}
-                      <div>
-                        <p className="font-medium">{team.name}</p>
-                        <p className="text-sm text-sand-500">
-                          {team.managerName || 'Unknown'}
-                        </p>
+                    <span className="text-sand-500 text-sm">#{index + 1}</span>
+                    {team.avatar_url ? (
+                      <img
+                        src={'http://localhost:3001' + team.avatar_url}
+                        alt={team.name}
+                        className="w-56 h-72 rounded-full object-cover my-3"
+                      />
+                    ) : (
+                      <div className="w-56 h-72 rounded-full bg-ocean-700 flex items-center justify-center my-3">
+                        🏈
                       </div>
-                    </div>
+                    )}
+                    <p className="font-medium text-center">{team.name}</p>
                     <button
                       onClick={() => {
                         setEditingTeam(team);
@@ -424,7 +428,7 @@ export default function League() {
                         setShowTeamForm(true);
                       }}
                       disabled={!perms.canEditAnyTeam}
-                      className="text-sm text-sand-500 hover:text-white"
+                      className="text-sm text-sand-500 hover:text-white mt-2"
                       title={!perms.canEditAnyTeam ? 'Admin only' : ''}
                     >
                       Edit

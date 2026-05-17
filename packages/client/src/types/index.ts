@@ -46,6 +46,7 @@ export interface Team {
   leagueId: string;
   managerId: string;
   name: string;
+  avatar_url?: string;
   createdAt: string;
   managerName?: string;
 }
