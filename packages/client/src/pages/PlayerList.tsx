@@ -8,6 +8,7 @@ export default function PlayerList() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
   
+  // Always refresh data when page loads
   useEffect(() => {
     loadPlayers();
   }, []);
@@ -85,13 +86,13 @@ export default function PlayerList() {
                 key={player.id}
                 className="flex items-center gap-3 p-4 bg-ocean-800 rounded border border-ocean-700"
               >
-                {player.profileImage ? (
-                  <img
-                    src={player.profileImage}
-                    alt={player.name}
-                    className="w-12 h-12 rounded-full object-cover"
-                  />
-                ) : (
+                {player.profile_image ? (
+                    <img
+                      src={player.profile_image}
+                      alt={player.name}
+                      className="w-12 h-12 rounded-full object-cover"
+                    />
+                  ) : (
                   <div className="w-12 h-12 rounded-full bg-ocean-700 flex items-center justify-center">
                     🍺
                   </div>

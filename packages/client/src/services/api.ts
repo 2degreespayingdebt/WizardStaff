@@ -229,10 +229,10 @@ class ApiService {
     const formData = new FormData();
     formData.append('avatar', file);
     
-    const response = await fetch(`${this.baseUrl}/players/${playerId}/avatar`, {
+    const response = await fetch(`${API_BASE}/players/${playerId}/avatar`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${this.token}`,
+        'Authorization': `Bearer ${this.getToken()}`,
       },
       body: formData,
     });
