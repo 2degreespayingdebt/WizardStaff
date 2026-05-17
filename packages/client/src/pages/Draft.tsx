@@ -15,7 +15,7 @@ export default function Draft() {
   const [loadingSeasons, setLoadingSeasons] = useState(true);
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   
-  const { board, loading, makePick, pauseDraft, resumeDraft } = useDraftSocket({ draftId: draftIdFromUrl || null });
+  const { board, loading, makePick, pauseDraft, resumeDraft, undoPick } = useDraftSocket({ draftId: draftIdFromUrl || null });
   
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -190,6 +190,17 @@ export default function Draft() {
                 }`}
               >
                 {draft.status === 'paused' ? '▶ Resume' : '⏸ Pause'}
+              </button>
+            )}
+            
+            {/* Undo Button */}
+            {draft.status !== 'completed' && picks.length > 0 && (
+              <button
+                onClick={() => undoPick()}
+                disabled={loading}
+                className="px-3 py-1 rounded text-sm bg-red-600 hover:bg-red-500"
+              >
+                ↩ Undo
               </button>
             )}
             

@@ -100,6 +100,20 @@ app.post('/api/drafts/:id/resume', authenticateToken, async (req, res) => {
   }
 });
 
+// Undo last pick
+app.post('/api/drafts/:id/undo', authenticateToken, async (req, res) => {
+  try {
+    const { draft, pick } = await draftModel.undoPick(req.params.id);
+    io.to(req.params.id).emit('draft:undone', { draft, pick });
+    const board = await draftModel.getDraftBoard(req.params.id);
+    io.to(req.params.id).emit('draft:state', board);
+    res.json({ draft, pick });
+  } catch (error) {
+    console.error('Undo pick error:', error);
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
 // Get or create draft for a season
 app.post('/api/drafts/season/:seasonId', authenticateToken, async (req, res) => {
   try {

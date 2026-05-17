@@ -35,6 +35,10 @@ export function useDraftSocket({ draftId, enabled = true }: UseDraftSocketProps)
       setLoading(false);
     });
 
+    draftSocket.onDraftUndone(({ draft }) => {
+      setLoading(false);
+    });
+
     draftSocket.onDraftError(({ error }) => {
       setError(error);
       setLoading(false);
@@ -69,5 +73,11 @@ export function useDraftSocket({ draftId, enabled = true }: UseDraftSocketProps)
     await fetch(`/api/drafts/${draftId}/resume`, { method: 'POST' });
   }, [draftId]);
 
-  return { board, loading, error, makePick, pauseDraft, resumeDraft };
+  const undoPick = useCallback(async () => {
+    if (!draftId) return;
+    setLoading(true);
+    await fetch(`/api/drafts/${draftId}/undo`, { method: 'POST' });
+  }, [draftId]);
+
+  return { board, loading, error, makePick, pauseDraft, resumeDraft, undoPick };
 }

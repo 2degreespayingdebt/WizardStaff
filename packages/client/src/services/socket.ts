@@ -56,12 +56,17 @@ class DraftSocket {
     this.socket?.on('draft:resumed', callback);
   }
 
+  onDraftUndone(callback: (data: { draft: Draft; pick: DraftPick }) => void) {
+    this.socket?.on('draft:undone', callback);
+  }
+
   offAll() {
     this.socket?.off('draft:state');
     this.socket?.off('draft:pick:made');
     this.socket?.off('draft:error');
     this.socket?.off('draft:paused');
     this.socket?.off('draft:resumed');
+    this.socket?.off('draft:undone');
   }
 }
 

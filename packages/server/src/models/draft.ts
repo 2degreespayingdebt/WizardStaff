@@ -203,6 +203,86 @@ export async function pauseDraft(draftId: string): Promise<Draft> {
   return (await findDraftById(draftId))!;
 }
 
+export async function undoPick(draftId: string): Promise<{ draft: Draft; pick: DraftPick | null }> {
+  const client = await getClient();
+  try {
+    await client.query('BEGIN');
+    
+    const draft = await findDraftById(draftId);
+    if (!draft) throw new Error('Draft not found');
+    if (draft.status !== 'active') throw new Error('Draft is not active');
+    
+    // Get the most recent pick
+    const recentPick = await client.query(
+      `SELECT * FROM draft_picks WHERE draft_id = $1 ORDER BY round DESC, pick DESC LIMIT 1`,
+      [draftId]
+    );
+    
+    if (recentPick.rows.length === 0) {
+      throw new Error('No picks to undo');
+    }
+    
+    const pick = recentPick.rows[0];
+    const round = pick.round;
+    const pickNum = pick.pick;
+    const teamId = pick.team_id;
+    const playerId = pick.player_id;
+    
+    // Delete the pick
+    await client.query(
+      `DELETE FROM draft_picks WHERE id = $1`,
+      [pick.id]
+    );
+    
+    // Remove player from roster
+    if (playerId) {
+      await client.query(
+        `DELETE FROM roster_slots WHERE team_id = $1 AND player_id = $2`,
+        [teamId, playerId]
+      );
+    }
+    
+    // Move draft back to previous pick
+    let prevPick = round === 1 && pickNum === 1 ? 1 : pickNum - 1;
+    let prevRound = round;
+    
+    if (prevPick < 1) {
+      // Going to previous round
+      const totalTeams = draft.draftOrder.length;
+      prevPick = totalTeams;
+      prevRound = round - 1;
+    }
+    
+    // Calculate the previous manager
+    let prevManagerId: string | null = null;
+    if (prevRound > 0) {
+      const prevPickIndex = (prevRound - 1) * draft.draftOrder.length + prevPick - 1;
+      if (prevPickIndex >= 0 && prevPickIndex < draft.draftOrder.length) {
+        prevManagerId = draft.draftOrder[prevPickIndex];
+      }
+    }
+    
+    await client.query(
+      `UPDATE drafts SET 
+        current_pick = $1, 
+        current_round = $2,
+        current_manager_id = $3
+      WHERE id = $4`,
+      [prevPick, prevRound, prevManagerId, draftId]
+    );
+    
+    await client.query('COMMIT');
+    
+    const updatedDraft = await findDraftById(draftId);
+    return { draft: updatedDraft!, pick: pick };
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 export async function resumeDraft(draftId: string): Promise<Draft> {
   const draft = await findDraftById(draftId);
   if (!draft) throw new Error('Draft not found');
