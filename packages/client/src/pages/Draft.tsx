@@ -16,6 +16,7 @@ export default function Draft() {
   const [seasonTeams, setSeasonTeams] = useState<SeasonTeam[]>([]);
   const [loadingSeasons, setLoadingSeasons] = useState(true);
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
+  const [mobileTab, setMobileTab] = useState<'picks' | 'available' | 'teams'>('available');
   
   const { board, loading, makePick, pauseDraft, resumeDraft, undoPick } = useDraftSocket({ draftId: draftIdFromUrl || null });
   
@@ -143,8 +144,8 @@ export default function Draft() {
     <div className="min-h-screen">
       {/* Header */}
       <header className="bg-ocean-800 border-b border-ocean-700">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="max-w-7xl mx-auto px-3 md:px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3 md:p-4">
             <button onClick={() => navigate('/leagues')} className="text-sand-500 hover:text-white">
               ← Back
             </button>
@@ -181,7 +182,7 @@ export default function Draft() {
           </div>
           
           {/* Draft Status */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 md:p-4">
             <div className="text-right">
               <p className="text-sm text-sand-500">
                 Round {draft.currentRound} • Pick {draft.currentPick}
@@ -219,16 +220,47 @@ export default function Draft() {
               </button>
             )}
             
-            <div className={`text-2xl font-mono ${timeLeft <= 10 ? 'text-red-500' : 'text-white'}`}>
+            <div className={`text-xl md:text-2xl font-mono ${timeLeft <= 10 ? 'text-red-500' : 'text-white'}`}>
               {timeLeft}s
             </div>
           </div>
         </div>
       </header>
       
-      <div className="flex h-[calc(100vh-64px)]">
-        {/* Left Panel - Picks Made */}
-        <div className="w-1/3 border-r border-ocean-700 p-4 overflow-y-auto">
+      <div className="flex flex-col md:flex-row h-[calc(100vh-64px)]">
+        
+        {/* Mobile: Tab buttons instead of 3 columns */}
+        <div className="md:hidden flex border-b border-ocean-700">
+          <button
+            onClick={() => setMobileTab('picks')}
+            className={`flex-1 py-3 px-2 text-sm font-medium ${
+              mobileTab === 'picks' ? 'bg-ocean-700 text-sand-500' : 'text-sand-500'
+            }`}
+          >
+            📋 Picks
+          </button>
+          <button
+            onClick={() => setMobileTab('available')}
+            className={`flex-1 py-3 px-2 text-sm font-medium ${
+              mobileTab === 'available' ? 'bg-ocean-700 text-sand-500' : 'text-sand-500'
+            }`}
+          >
+            🍺 Available
+          </button>
+          <button
+            onClick={() => setMobileTab('teams')}
+            className={`flex-1 py-3 px-2 text-sm font-medium ${
+              mobileTab === 'teams' ? 'bg-ocean-700 text-sand-500' : 'text-sand-500'
+            }`}
+          >
+            👥 Teams
+          </button>
+        </div>
+        
+        {/* Left Panel - Picks Made - Desktop */}
+        <div className={`w-full md:w-1/3 border-r border-ocean-700 p-3 md:p-4 overflow-y-auto ${
+          mobileTab !== 'picks' ? 'hidden md:block' : ''
+        }`}>
           <h3 className="font-semibold mb-4">📋 Picks Made</h3>
           
           <div className="space-y-1">
@@ -278,7 +310,9 @@ export default function Draft() {
         </div>
         
         {/* Center Panel - Available Drinkers */}
-        <div className="flex-1 p-4 overflow-y-auto">
+        <div className={`flex-1 p-3 md:p-4 overflow-y-auto ${
+          mobileTab !== 'available' ? 'hidden md:block' : ''
+        }`}>
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold">Available Drinkers</h3>
             <span className="text-sm text-sand-500">
@@ -323,7 +357,7 @@ export default function Draft() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-2xl">
+                      <div className="w-full h-full flex items-center justify-center text-xl md:text-2xl">
                         🍺
                       </div>
                     )}
@@ -353,7 +387,9 @@ export default function Draft() {
         </div>
         
         {/* Right Panel - Team Rosters */}
-        <div className="w-1/3 border-l border-ocean-700 p-4 overflow-y-auto">
+        <div className={`w-full md:w-1/3 border-l border-ocean-700 p-3 md:p-4 overflow-y-auto ${
+          mobileTab !== 'teams' ? 'hidden md:block' : ''
+        }`}>
           <h3 className="font-semibold mb-4">👥 Team Rosters</h3>
           
           {seasonTeams.length > 0 ? (

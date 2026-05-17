@@ -71,17 +71,17 @@ export default function Leagues() {
     <div className="min-h-screen">
       {/* Header */}
       <header className="bg-ocean-800 border-b border-ocean-700">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <h1 className="text-xl font-bold text-sand-500">🪄 WizardStaff</h1>
+        <div className="max-w-6xl mx-auto px-3 md:px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3 md:p-4">
+            <h1 className="text-lg md:text-xl font-bold text-sand-500">🪄 WizardStaff</h1>
           </div>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-8">
+      <main className="max-w-4xl mx-auto px-3 md:px-4 py-4 md:py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl font-bold">Leagues</h2>
+            <h2 className="text-xl md:text-2xl font-bold">Leagues</h2>
             <p className="text-sand-500">Create or join a fantasy football league</p>
           </div>
           <div className="flex gap-2">
@@ -125,7 +125,7 @@ export default function Leagues() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3 md:p-4">
                 <div>
                   <label className="block text-sm text-sand-500 mb-1">
                     Max Teams

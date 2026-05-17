@@ -150,19 +150,19 @@ export default function BulkImport() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#023E8A' }}>
       <header className="border-b" style={{ backgroundColor: '#0077B6', borderColor: '#D4A574' }}>
-        <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
+        <div className="max-w-6xl mx-auto px-3 md:px-4 py-4">
+          <div className="flex items-center gap-3 md:p-4">
             <button onClick={() => navigate('/leagues')} className="text-sand-500 hover:text-white">
               ← Back
             </button>
-            <h1 className="text-xl font-bold" style={{ color: '#D4A574' }}>
+            <h1 className="text-lg md:text-xl font-bold" style={{ color: '#D4A574' }}>
               📥 Bulk Import Players
             </h1>
           </div>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-8">
+      <main className="max-w-4xl mx-auto px-3 md:px-4 py-4 md:py-8">
         {/* Instructions */}
         <div className="card mb-6">
           <h2 className="text-lg font-semibold mb-4">📋 CSV Format Instructions</h2>
@@ -242,13 +242,13 @@ name,description,team,profile_image,projected_points,adp
           <div className="card">
             <h2 className="text-lg font-semibold mb-4">📊 Import Results</h2>
             
-            <div className="flex gap-4 mb-4">
+            <div className="flex gap-3 md:p-4 mb-4">
               <div className="text-center">
-                <p className="text-3xl font-bold text-emerald-400">{result.created}</p>
+                <p className="text-2xl md:text-3xl font-bold text-emerald-400">{result.created}</p>
                 <p className="text-sm text-sand-500">Created</p>
               </div>
               <div className="text-center">
-                <p className="text-3xl font-bold text-red-400">{result.failed}</p>
+                <p className="text-2xl md:text-3xl font-bold text-red-400">{result.failed}</p>
                 <p className="text-sm text-sand-500">Failed</p>
               </div>
             </div>
@@ -282,7 +282,7 @@ name,description,team,profile_image,projected_points,adp
                 accept=".csv"
                 onChange={handleFileChange}
                 className="block w-full text-sm text-sand-500
-                  file:mr-4 file:py-2 file:px-4
+                  file:mr-4 file:py-2 file:px-3 md:px-4
                   file:rounded file:border-0
                   file:text-sm file:font-semibold
                   file:bg-sand-600 file:text-ocean-900
@@ -353,7 +353,7 @@ name,description,team,profile_image,projected_points,adp
 
             {/* Import Button */}
             {csvData.length > 0 && csvData.some(p => p.valid) && (
-              <div className="flex gap-4">
+              <div className="flex gap-3 md:p-4">
                 <button
                   onClick={handleImport}
                   disabled={importing}

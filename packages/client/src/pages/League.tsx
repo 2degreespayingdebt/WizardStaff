@@ -241,29 +241,29 @@ export default function League() {
     <div className="min-h-screen" style={{ backgroundColor: '#023E8A' }}>
       {/* Header */}
       <header className="border-b" style={{ backgroundColor: '#0077B6', borderColor: '#D4A574' }}>
-        <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
+        <div className="max-w-6xl mx-auto px-3 md:px-4 py-4">
+          <div className="flex items-center gap-3 md:p-4">
             <button onClick={() => navigate('/leagues')} className="text-sand-500 hover:text-white">
               ← Back
             </button>
-            <h1 className="text-xl font-bold" style={{ color: '#D4A574' }}>{league.name}</h1>
+            <h1 className="text-lg md:text-xl font-bold" style={{ color: '#D4A574' }}>{league.name}</h1>
           </div>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-8">
-        <div className="card mb-6">
-          <h2 className="text-2xl font-bold">{league.name}</h2>
+      <main className="max-w-6xl mx-auto px-2 md:px-3 md:px-4 py-4 md:py-4 md:py-8">
+        <div className="card mb-4 md:mb-6">
+          <h2 className="text-lg md:text-xl md:text-xl md:text-2xl font-bold">{league.name}</h2>
           <p className="text-sand-500">
             {role === 'admin' ? '👑 Admin' : '🏄 Team Lead'} • {teams.length}/{league.maxTeams} Teams
           </p>
         </div>
 
-        {/* Tabs */}
-        <div className="flex border-b border-ocean-700 mb-6">
+        {/* Tabs - Scrollable on mobile */}
+        <div className="flex border-b border-ocean-700 mb-4 md:mb-6 overflow-x-auto">
           <button
             onClick={() => setActiveTab('teams')}
-            className={`px-4 py-2 font-medium ${
+            className={`px-3 md:px-3 md:px-4 py-2 font-medium whitespace-nowrap ${
               activeTab === 'teams'
                 ? 'text-sand-500 border-b-2 border-sand-500'
                 : 'text-sand-500 hover:text-white'
@@ -273,7 +273,7 @@ export default function League() {
           </button>
           <button
             onClick={() => setActiveTab('seasons')}
-            className={`px-4 py-2 font-medium ${
+            className={`px-3 md:px-3 md:px-4 py-2 font-medium whitespace-nowrap ${
               activeTab === 'seasons'
                 ? 'text-sand-500 border-b-2 border-sand-500'
                 : 'text-sand-500 hover:text-white'
@@ -283,7 +283,7 @@ export default function League() {
           </button>
           <button
             onClick={() => setActiveTab('leaderboard')}
-            className={`px-4 py-2 font-medium ${
+            className={`px-3 md:px-3 md:px-4 py-2 font-medium whitespace-nowrap ${
               activeTab === 'leaderboard'
                 ? 'text-sand-500 border-b-2 border-sand-500'
                 : 'text-sand-500 hover:text-white'
@@ -511,7 +511,7 @@ export default function League() {
             {!selectedSeasonId ? (
               <p className="text-sand-500">Select a season to view the leaderboard</p>
             ) : leaderboard.length === 0 ? (
-              <div className="text-center py-8">
+              <div className="text-center py-4 md:py-8">
                 <p className="text-sand-500 mb-4">No teams in this season yet</p>
                 <button
                   onClick={handleSetSeasonTeams}
@@ -585,13 +585,13 @@ export default function League() {
                           className="flex items-center justify-between p-3 bg-ocean-800 rounded"
                         >
                           <div className="flex items-center gap-3">
-                            <span className="text-2xl">
+                            <span className="text-xl md:text-2xl">
                               {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
                             </span>
                             <span className="font-medium">{team.teamName}</span>
                           </div>
-                          <div className="flex items-center gap-4">
-                            <span className="text-xl font-bold text-emerald-400">
+                          <div className="flex items-center gap-3 md:p-4">
+                            <span className="text-lg md:text-xl font-bold text-emerald-400">
                               {team.drinkCount}
                             </span>
                             <div className="flex gap-1">

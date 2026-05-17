@@ -39,17 +39,17 @@ export default function CreateDrinker() {
   return (
     <div className="min-h-screen">
       <header className="bg-ocean-800 border-b border-ocean-700">
-        <div className="max-w-3xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
+        <div className="max-w-3xl mx-auto px-3 md:px-4 py-4">
+          <div className="flex items-center gap-3 md:p-4">
             <button onClick={() => navigate(-1)} className="text-sand-500 hover:text-white">
               ← Back
             </button>
-            <h1 className="text-xl font-bold">🍺 Create Custom Drinker</h1>
+            <h1 className="text-lg md:text-xl font-bold">🍺 Create Custom Drinker</h1>
           </div>
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-4 py-8">
+      <main className="max-w-3xl mx-auto px-3 md:px-4 py-4 md:py-8">
         {error && (
           <div className="mb-4 p-3 bg-red-900/50 border border-red-500 rounded text-red-200">
             {error}
@@ -60,13 +60,13 @@ export default function CreateDrinker() {
           {/* Profile Photo */}
           <div>
             <label className="block text-sm text-sand-500 mb-2">Profile Photo</label>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 md:p-4">
               <div className="relative">
                 <div className="w-32 h-32 rounded-lg bg-ocean-700 flex items-center justify-center overflow-hidden">
                   {profileImage ? (
                     <img src={profileImage} alt="Preview" className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-4xl text-sand-500">🍺</span>
+                    <span className="text-3xl md:text-4xl text-sand-500">🍺</span>
                   )}
                 </div>
                 <label className="absolute bottom-0 right-0 bg-sand-600 p-2 rounded-full cursor-pointer hover:bg-sand-700 transition-colors">

@@ -109,17 +109,17 @@ export default function PlayerProfile() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#023E8A' }}>
       <header className="border-b" style={{ backgroundColor: '#0077B6', borderColor: '#D4A574' }}>
-        <div className="max-w-3xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
+        <div className="max-w-3xl mx-auto px-3 md:px-4 py-4">
+          <div className="flex items-center gap-3 md:p-4">
             <button onClick={() => navigate(-1)} className="text-sand-500 hover:text-white">
               ← Back
             </button>
-            <h1 className="text-xl font-bold" style={{ color: '#D4A574' }}>🍺 Drinker Profile</h1>
+            <h1 className="text-lg md:text-xl font-bold" style={{ color: '#D4A574' }}>🍺 Drinker Profile</h1>
           </div>
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-4 py-8">
+      <main className="max-w-3xl mx-auto px-3 md:px-4 py-4 md:py-8">
         {error && (
           <div className="mb-4 p-3 bg-red-900/50 border border-red-500 rounded text-red-200">
             {error}
@@ -143,7 +143,7 @@ export default function PlayerProfile() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <span className="text-4xl text-sand-500">🍺</span>
+                  <span className="text-3xl md:text-4xl text-sand-500">🍺</span>
                 )}
               </div>
               <label className="absolute bottom-0 right-0 bg-sand-600 p-2 rounded-full cursor-pointer hover:bg-sand-700 transition-colors">
@@ -163,14 +163,14 @@ export default function PlayerProfile() {
             </div>
 
             <div className="flex-1">
-              <h2 className="text-2xl font-bold">{player.name}</h2>
+              <h2 className="text-xl md:text-2xl font-bold">{player.name}</h2>
               <div className="flex items-center gap-3 mt-1">
                 <span className="text-lg text-sand-500 font-medium">🍺 Drinker</span>
                 {player.status !== 'active' && (
                   <span className="text-xs bg-red-600 px-2 py-0.5 rounded">INACTIVE</span>
                 )}
               </div>
-              <div className="flex items-center gap-4 mt-2 text-sm text-sand-500">
+              <div className="flex items-center gap-3 md:p-4 mt-2 text-sm text-sand-500">
                 <span>Rank: #{player.adp || 'N/A'}</span>
                 <span>Proj: {player.projectedPoints?.toFixed(1) || 'N/A'} pts</span>
               </div>
@@ -207,12 +207,12 @@ export default function PlayerProfile() {
             <div className="border-t border-ocean-700 pt-6 mt-6">
               <h3 className="text-lg font-semibold mb-3">⚙️ Player Status (Admin Only)</h3>
               
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3 md:p-4">
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleSetStatus('active')}
                     disabled={saving || player.status === 'active'}
-                    className={`px-4 py-2 rounded font-medium ${
+                    className={`px-3 md:px-4 py-2 rounded font-medium ${
                       player.status === 'active'
                         ? 'bg-emerald-600 text-white'
                         : 'bg-ocean-700 hover:bg-ocean-600'
@@ -223,7 +223,7 @@ export default function PlayerProfile() {
                   <button
                     onClick={() => handleSetStatus('out')}
                     disabled={saving || player.status === 'out'}
-                    className={`px-4 py-2 rounded font-medium ${
+                    className={`px-3 md:px-4 py-2 rounded font-medium ${
                       player.status === 'out'
                         ? 'bg-red-600 text-white'
                         : 'bg-ocean-700 hover:bg-ocean-600'

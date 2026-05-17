@@ -35,10 +35,10 @@ export default function Dashboard() {
     <div className="min-h-screen" style={{ backgroundColor: '#023E8A' }}>
       {/* Header */}
       <header className="border-b" style={{ backgroundColor: '#0077B6', borderColor: '#D4A574' }}>
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <h1 className="text-xl font-bold" style={{ color: '#D4A574' }}>🍺 WizardStaff</h1>
-            <nav className="flex gap-4 ml-8">
+        <div className="max-w-6xl mx-auto px-3 md:px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3 md:p-4">
+            <h1 className="text-lg md:text-xl font-bold" style={{ color: '#D4A574' }}>🍺 WizardStaff</h1>
+            <nav className="flex gap-3 md:p-4 ml-8">
               <Link to="/" className="text-white hover:text-sand-500">
                 Dashboard
               </Link>
@@ -47,7 +47,7 @@ export default function Dashboard() {
               </Link>
             </nav>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 md:p-4">
             <span className="text-sand-500">
               {role === 'admin' ? '👑 Admin' : '🏄 Team Lead'}
             </span>
@@ -61,10 +61,10 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-8">
+      <main className="max-w-6xl mx-auto px-3 md:px-4 py-4 md:py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl font-bold">Welcome, {role === 'admin' ? 'Admin' : 'Team Lead'}!</h2>
+            <h2 className="text-xl md:text-2xl font-bold">Welcome, {role === 'admin' ? 'Admin' : 'Team Lead'}!</h2>
             <p className="text-sand-500">Manage your drinking draft leagues</p>
           </div>
           <Link to="/leagues" className="btn-primary">
@@ -89,7 +89,7 @@ export default function Dashboard() {
             {activeLeagues.length > 0 && (
               <section className="mb-8">
                 <h3 className="text-lg font-semibold mb-4">Active Leagues</h3>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3 md:p-4">
                   {activeLeagues.map((league) => (
                     <Link
                       key={league.id}
@@ -124,7 +124,7 @@ export default function Dashboard() {
             {completedLeagues.length > 0 && (
               <section>
                 <h3 className="text-lg font-semibold mb-4">Past Seasons</h3>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3 md:p-4">
                   {completedLeagues.map((league) => (
                     <Link
                       key={league.id}

@@ -43,14 +43,14 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: '#023E8A' }}>
+    <div className="min-h-screen flex items-center justify-center p-3 md:p-4" style={{ backgroundColor: '#023E8A' }}>
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-5xl font-bold mb-3" style={{ color: '#D4A574' }}>
             🍺
           </h1>
-          <h2 className="text-3xl font-bold text-white mb-2">
+          <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
             WizardStaff
           </h2>
           <p className="text-sand-500">Drinking Buddy Draft</p>
@@ -61,8 +61,8 @@ export default function Login() {
           {/* Admin Login */}
           <div className="card">
             <div className="text-center mb-4">
-              <div className="text-4xl mb-2">👑</div>
-              <h3 className="text-xl font-semibold text-white">Admin</h3>
+              <div className="text-3xl md:text-4xl mb-2">👑</div>
+              <h3 className="text-lg md:text-xl font-semibold text-white">Admin</h3>
               <p className="text-sm text-sand-500">Full access to all features</p>
             </div>
             
@@ -88,8 +88,8 @@ export default function Login() {
           {/* Team Lead Login */}
           <div className="card">
             <div className="text-center mb-4">
-              <div className="text-4xl mb-2">🏄</div>
-              <h3 className="text-xl font-semibold text-white">Team Lead</h3>
+              <div className="text-3xl md:text-4xl mb-2">🏄</div>
+              <h3 className="text-lg md:text-xl font-semibold text-white">Team Lead</h3>
               <p className="text-sm text-sand-500">Limited access for team management</p>
             </div>
             
