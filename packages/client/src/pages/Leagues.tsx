@@ -1,14 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../services/api';
+import { useRole } from '../hooks/useRole';
 import type { League } from '../types';
 
 export default function Leagues() {
   const navigate = useNavigate();
+  const { role } = useRole();
   const [leagues, setLeagues] = useState<League[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [showJoin, setShowJoin] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [leagueToDelete, setLeagueToDelete] = useState<League | null>(null);
   const [formData, setFormData] = useState({
     name: '',
   });
@@ -61,6 +65,34 @@ export default function Leagues() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleDeleteClick = (league: League) => {
+    setLeagueToDelete(league);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!leagueToDelete) return;
+    
+    setError(null);
+    setSubmitting(true);
+    
+    try {
+      await api.deleteLeague(leagueToDelete.id);
+      setLeagues(leagues.filter(l => l.id !== leagueToDelete.id));
+      setShowDeleteModal(false);
+      setLeagueToDelete(null);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+    setLeagueToDelete(null);
   };
 
   return (
@@ -212,9 +244,9 @@ export default function Leagues() {
                   <div>
                     <h3 className="font-semibold text-lg">{league.name}</h3>
                     <div className="text-sm text-sand-500">
-                      <span>{league.teams?.length || 0}/{league.maxTeams} Teams</span>
+                      <span>{league.teams?.length || 0} Teams</span>
                       <span className="mx-2">•</span>
-                      <span>{league.scoringFormat} scoring</span>
+                      <span>Created: {new Date(league.createdAt).toLocaleDateString()}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -239,10 +271,49 @@ export default function Leagues() {
                     >
                       View
                     </button>
+                    {role === 'admin' && (
+                      <button
+                        onClick={() => handleDeleteClick(league)}
+                        disabled={submitting}
+                        className="text-red-500 hover:text-red-400 text-sm"
+                        title="Delete league (admin only)"
+                      >
+                        🗑️
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-ocean-800 p-6 rounded-lg max-w-md w-full mx-4 border border-sand-500">
+              <h3 className="text-xl font-bold mb-4">Delete League</h3>
+              <p className="text-sand-500 mb-6">
+                Are you sure you want to delete "{leagueToDelete?.name}"? 
+                <br /><br />
+                This action cannot be undone. Teams will remain in the database.
+              </p>
+              <div className="flex gap-4 justify-end">
+                <button
+                  onClick={handleCancelDelete}
+                  className="btn-secondary"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmDelete}
+                  disabled={submitting}
+                  className="btn-danger"
+                >
+                  {submitting ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </main>

@@ -88,6 +88,12 @@ class ApiService {
     return this.request<League[]>('/leagues');
   }
 
+  async deleteLeague(id: string): Promise<void> {
+    return this.request<void>(`/leagues/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
   async getLeague(id: string): Promise<League> {
     return this.request<League>(`/leagues/${id}`);
   }

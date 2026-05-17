@@ -291,4 +291,20 @@ router.put('/:id/teams/order', async (req: AuthRequest, res: Response) => {
   }
 });
 
+// Delete league
+router.delete('/:id', async (req: AuthRequest, res: Response) => {
+  try {
+    const league = await leagueModel.findLeagueById(req.params.id);
+    if (!league) {
+      return res.status(404).json({ error: 'League not found' });
+    }
+    
+    await leagueModel.deleteLeague(req.params.id);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Delete league error:', error);
+    res.status(500).json({ error: 'Failed to delete league' });
+  }
+});
+
 export default router;
