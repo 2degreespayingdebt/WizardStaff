@@ -13,6 +13,7 @@ export default function Draft() {
   const [selectedSeasonId, setSelectedSeasonId] = useState<string>('');
   const [seasonTeams, setSeasonTeams] = useState<SeasonTeam[]>([]);
   const [loadingSeasons, setLoadingSeasons] = useState(true);
+  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   
   const { board, loading, makePick, pauseDraft, resumeDraft } = useDraftSocket({ draftId: draftIdFromUrl || null });
   
@@ -71,17 +72,21 @@ export default function Draft() {
   // Handle season selection
   const handleSeasonSelect = async (seasonId: string) => {
     setSelectedSeasonId(seasonId);
+    setSelectedTeamId(null);
     try {
-      // Load teams for this season
       const teams = await api.getSeasonLeaderboard(seasonId);
       setSeasonTeams(teams);
-      
-      // Get or create draft for this season
       const { draftId } = await api.getOrCreateDraft(seasonId);
       navigate(`/draft/${draftId}`, { replace: true });
     } catch (err) {
       console.error('Failed to start draft:', err);
     }
+  };
+  
+  // Get picks for a specific team
+  const getTeamPicks = (teamId: string) => {
+    if (!board?.picks) return [];
+    return board.picks.filter(p => p.teamId === teamId);
   };
   
   // Reset timer when pick changes
@@ -321,25 +326,76 @@ export default function Draft() {
           </div>
         </div>
         
-        {/* Right Panel - Teams in Season */}
+        {/* Right Panel - Team Rosters */}
         <div className="w-1/3 border-l border-gray-700 p-4 overflow-y-auto">
-          <h3 className="font-semibold mb-4">🍺 Season Teams</h3>
+          <h3 className="font-semibold mb-4">👥 Team Rosters</h3>
           
-          {/* Show current teams in this season */}
           {seasonTeams.length > 0 ? (
             <div className="space-y-2">
-              {seasonTeams.map((team, index) => (
-                <div
-                  key={team.teamId}
-                  className="flex items-center justify-between p-2 bg-gray-800 rounded"
-                >
-                  <span className="text-gray-400 w-6">#{index + 1}</span>
-                  <span className="font-medium">{team.teamName}</span>
-                  <span className="text-emerald-400 text-sm">
-                    {team.drinkCount} 🍺
-                  </span>
-                </div>
-              ))}
+              {/* Team List - Click to view their picks */}
+              {seasonTeams.map((team, index) => {
+                const teamPicks = getTeamPicks(team.teamId);
+                const isSelected = selectedTeamId === team.teamId;
+                
+                return (
+                  <div key={team.teamId}>
+                    {/* Team Header - Click to expand */}
+                    <button
+                      onClick={() => setSelectedTeamId(isSelected ? null : team.teamId)}
+                      className={`w-full flex items-center justify-between p-2 rounded text-left ${
+                        isSelected ? 'bg-emerald-900 border border-emerald-500' : 'bg-gray-800'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-400 w-6">#{index + 1}</span>
+                        <span className="font-medium">{team.teamName}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-emerald-400 text-sm">
+                          {teamPicks.length} 🍺
+                        </span>
+                        <span className="text-gray-500">
+                          {isSelected ? '▲' : '▼'}
+                        </span>
+                      </div>
+                    </button>
+                    
+                    {/* Team's Picks - Shown when expanded */}
+                    {isSelected && (
+                      <div className="mt-1 ml-4 space-y-1">
+                        {teamPicks.length === 0 ? (
+                          <p className="text-gray-500 text-sm py-1">No picks yet</p>
+                        ) : (
+                          teamPicks.map((pick, i) => (
+                            <div
+                              key={pick.id}
+                              className="flex items-center gap-2 py-1 px-2 bg-gray-750 rounded text-sm"
+                            >
+                              <span className="text-gray-500 w-8">
+                                {pick.round}.{pick.pick}
+                              </span>
+                              <div className="w-5 h-5 rounded-full overflow-hidden bg-gray-700 flex-shrink-0">
+                                {pick.playerImage ? (
+                                  <img 
+                                    src={pick.playerImage} 
+                                    alt={pick.playerName}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-xs">
+                                    🍺
+                                  </div>
+                                )}
+                              </div>
+                              <span className="truncate">{pick.playerName}</span>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <p className="text-gray-400 text-sm">
