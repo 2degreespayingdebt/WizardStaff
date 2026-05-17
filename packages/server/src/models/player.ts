@@ -144,16 +144,19 @@ export async function updatePlayer(
 export async function createDrinker(
   name: string,
   description?: string,
-  profileImage?: string
+  profileImage?: string,
+  team?: string,
+  projectedPoints?: number,
+  adpValue?: number
 ): Promise<Player> {
   // Generate a unique ID
   const id = `C${Date.now()}${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
   
   const result = await query(
     `INSERT INTO players (id, name, position, team, description, profile_image, status, projected_points, adp)
-     VALUES ($1, $2, 'drinker', 'DIY', $3, $4, 'active', 50, (SELECT COALESCE(MAX(adp), 0) + 1 FROM players))
+     VALUES ($1, $2, 'drinker', $3, $4, $5, 'active', $6, $7)
      RETURNING *`,
-    [id, name, description || null, profileImage || null]
+    [id, name, team || 'DIY', description || null, profileImage || null, projectedPoints || 50, adpValue || null]
   );
   
   return result.rows[0];

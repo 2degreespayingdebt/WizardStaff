@@ -166,10 +166,17 @@ export default function Draft() {
             </select>
             <Link 
               to="/players/new" 
-              className="text-sm text-sand-500 hover:text-emerald-400 ml-auto"
+              className="text-sm text-sand-500 hover:text-emerald-400"
               style={{ display: perms.canCreatePlayer ? 'inline' : 'none' }}
             >
               + Create Custom Drinker
+            </Link>
+            <Link 
+              to="/players/bulk-import" 
+              className="text-sm text-sand-500 hover:text-emerald-400 ml-4"
+              style={{ display: perms.canCreatePlayer ? 'inline' : 'none' }}
+            >
+              📥 Bulk Import
             </Link>
           </div>
           

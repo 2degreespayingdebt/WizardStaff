@@ -162,6 +162,22 @@ class ApiService {
     });
   }
 
+  async bulkImportPlayers(
+    players: Array<{
+      name: string;
+      description?: string;
+      team?: string;
+      profileImage?: string;
+      projectedPoints?: number;
+      adp?: number;
+    }>
+  ): Promise<{ created: number; failed: number; errors: string[] }> {
+    return this.request<{ created: number; failed: number; errors: string[] }>('/players/bulk-import', {
+      method: 'POST',
+      body: JSON.stringify({ players }),
+    });
+  }
+
   // Drafts
   async getDraftBoard(draftId: string): Promise<DraftBoard> {
     return this.request<DraftBoard>(`/drafts/${draftId}/board`);

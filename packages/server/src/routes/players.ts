@@ -112,4 +112,49 @@ router.post('/', async (req: AuthRequest, res: Response) => {
   }
 });
 
+// Bulk import players from CSV
+router.post('/bulk-import', async (req: AuthRequest, res: Response) => {
+  try {
+    const { players } = req.body;
+    
+    if (!Array.isArray(players) || players.length === 0) {
+      return res.status(400).json({ error: 'No players to import' });
+    }
+    
+    const results = {
+      created: 0,
+      failed: 0,
+      errors: [] as string[],
+    };
+    
+    for (const player of players) {
+      try {
+        if (!player.name) {
+          results.failed++;
+          results.errors.push(`Missing name for player`);
+          continue;
+        }
+        
+        await playerModel.createDrinker(
+          player.name,
+          player.description || null,
+          player.profileImage || null,
+          player.team || null,
+          player.projectedPoints || null,
+          player.adp || null
+        );
+        results.created++;
+      } catch (err) {
+        results.failed++;
+        results.errors.push(`Failed to create ${player.name}: ${(err as Error).message}`);
+      }
+    }
+    
+    res.json(results);
+  } catch (error) {
+    console.error('Bulk import error:', error);
+    res.status(500).json({ error: 'Failed to import players' });
+  }
+});
+
 export default router;

@@ -7,6 +7,7 @@ import League from './pages/League';
 import Draft from './pages/Draft';
 import PlayerProfile from './pages/PlayerProfile';
 import CreateDrinker from './pages/CreateDrinker';
+import BulkImport from './pages/BulkImport';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, loading } = useRole();
@@ -77,6 +78,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <CreateDrinker />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/players/bulk-import"
+            element={
+              <ProtectedRoute>
+                <BulkImport />
               </ProtectedRoute>
             }
           />
