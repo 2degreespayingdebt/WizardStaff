@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useAuth } from './hooks/useAuth';
+import { useRole } from './hooks/useRole';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Leagues from './pages/Leagues';
@@ -9,17 +9,17 @@ import PlayerProfile from './pages/PlayerProfile';
 import CreateDrinker from './pages/CreateDrinker';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { isAuthenticated, loading } = useRole();
   
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"></div>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#023E8A' }}>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2" style={{ borderColor: '#D4A574' }}></div>
       </div>
     );
   }
   
-  if (!user) {
+  if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
   
@@ -29,7 +29,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-gray-900 text-white">
+      <div className="min-h-screen text-white" style={{ backgroundColor: '#023E8A' }}>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route

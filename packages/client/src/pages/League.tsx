@@ -206,7 +206,7 @@ export default function League() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-emerald-500"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-sand-500"></div>
       </div>
     );
   }
@@ -227,10 +227,10 @@ export default function League() {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <header className="bg-gray-800 border-b border-gray-700">
+      <header className="bg-ocean-800 border-b border-ocean-700">
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <button onClick={() => navigate('/leagues')} className="text-gray-400 hover:text-white">
+            <button onClick={() => navigate('/leagues')} className="text-sand-500 hover:text-white">
               ← Back
             </button>
             <h1 className="text-xl font-bold">{league.name}</h1>
@@ -242,19 +242,19 @@ export default function League() {
         {/* League Info */}
         <div className="card mb-6">
           <h2 className="text-2xl font-bold">{league.name}</h2>
-          <p className="text-gray-400">
+          <p className="text-sand-500">
             🍺 {teams.length}/{league.maxTeams} Teams
           </p>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-700 mb-6">
+        <div className="flex border-b border-ocean-700 mb-6">
           <button
             onClick={() => setActiveTab('teams')}
             className={`px-4 py-2 font-medium ${
               activeTab === 'teams'
-                ? 'text-emerald-500 border-b-2 border-emerald-500'
-                : 'text-gray-400 hover:text-white'
+                ? 'text-sand-500 border-b-2 border-sand-500'
+                : 'text-sand-500 hover:text-white'
             }`}
           >
             Teams ({teams.length})
@@ -263,8 +263,8 @@ export default function League() {
             onClick={() => setActiveTab('seasons')}
             className={`px-4 py-2 font-medium ${
               activeTab === 'seasons'
-                ? 'text-emerald-500 border-b-2 border-emerald-500'
-                : 'text-gray-400 hover:text-white'
+                ? 'text-sand-500 border-b-2 border-sand-500'
+                : 'text-sand-500 hover:text-white'
             }`}
           >
             Seasons ({seasons.length})
@@ -273,8 +273,8 @@ export default function League() {
             onClick={() => setActiveTab('leaderboard')}
             className={`px-4 py-2 font-medium ${
               activeTab === 'leaderboard'
-                ? 'text-emerald-500 border-b-2 border-emerald-500'
-                : 'text-gray-400 hover:text-white'
+                ? 'text-sand-500 border-b-2 border-sand-500'
+                : 'text-sand-500 hover:text-white'
             }`}
           >
             🏆 Leaderboard
@@ -300,7 +300,7 @@ export default function League() {
 
             {/* Team Form */}
             {showTeamForm && (
-              <div className="card mb-4 border-emerald-500">
+              <div className="card mb-4 border-sand-500">
                 <h4 className="font-medium mb-3">
                   {editingTeam ? 'Edit Team' : 'Add New Team'}
                 </h4>
@@ -335,19 +335,19 @@ export default function League() {
 
             {/* Teams List */}
             {teams.length === 0 ? (
-              <p className="text-gray-400">No teams yet. Add your first team!</p>
+              <p className="text-sand-500">No teams yet. Add your first team!</p>
             ) : (
               <div className="space-y-2">
                 {teams.map((team, index) => (
                   <div
                     key={team.id}
-                    className="flex items-center justify-between p-3 bg-gray-800 rounded"
+                    className="flex items-center justify-between p-3 bg-ocean-800 rounded"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="text-gray-500 w-6">#{index + 1}</span>
+                      <span className="text-sand-500 w-6">#{index + 1}</span>
                       <div>
                         <p className="font-medium">{team.name}</p>
-                        <p className="text-sm text-gray-400">
+                        <p className="text-sm text-sand-500">
                           {team.managerName || 'Unknown Manager'}
                         </p>
                       </div>
@@ -359,7 +359,7 @@ export default function League() {
                           setTeamName(team.name);
                           setShowTeamForm(true);
                         }}
-                        className="text-sm text-gray-400 hover:text-white"
+                        className="text-sm text-sand-500 hover:text-white"
                       >
                         Edit
                       </button>
@@ -390,7 +390,7 @@ export default function League() {
 
             {/* Season Form */}
             {showSeasonForm && (
-              <div className="card mb-4 border-emerald-500">
+              <div className="card mb-4 border-sand-500">
                 <h4 className="font-medium mb-3">
                   {editingSeason ? 'Edit Season' : 'Add New Season'}
                 </h4>
@@ -425,14 +425,14 @@ export default function League() {
 
             {/* Seasons List */}
             {seasons.length === 0 ? (
-              <p className="text-gray-400">No seasons yet. Add your first season!</p>
+              <p className="text-sand-500">No seasons yet. Add your first season!</p>
             ) : (
               <div className="space-y-3">
                 {seasons.map((season) => (
                   <div
                     key={season.id}
-                    className={`p-3 bg-gray-800 rounded ${
-                      season.isActive ? 'border border-emerald-500' : ''
+                    className={`p-3 bg-ocean-800 rounded ${
+                      season.isActive ? 'border border-sand-500' : ''
                     }`}
                   >
                     <div className="flex items-center justify-between">
@@ -442,7 +442,7 @@ export default function League() {
                           {season.name}
                         </span>
                         {season.isActive && (
-                          <span className="text-xs bg-emerald-600 px-2 py-0.5 rounded">
+                          <span className="text-xs bg-sand-600 px-2 py-0.5 rounded">
                             Active
                           </span>
                         )}
@@ -454,7 +454,7 @@ export default function League() {
                             setSeasonName(season.name);
                             setShowSeasonForm(true);
                           }}
-                          className="text-sm text-gray-400 hover:text-white"
+                          className="text-sm text-sand-500 hover:text-white"
                         >
                           Edit
                         </button>
@@ -462,7 +462,7 @@ export default function League() {
                           <button
                             onClick={() => handleActivateSeason(season.id)}
                             disabled={saving}
-                            className="text-sm text-emerald-500 hover:text-emerald-400"
+                            className="text-sm text-sand-500 hover:text-emerald-400"
                           >
                             Activate
                           </button>
@@ -472,13 +472,13 @@ export default function League() {
 
                     {/* Season Teams */}
                     {selectedSeasonId === season.id && (
-                      <div className="mt-3 pt-3 border-t border-gray-700">
+                      <div className="mt-3 pt-3 border-t border-ocean-700">
                         <div className="flex justify-between items-center mb-2">
-                          <p className="text-sm text-gray-400">Teams in Season</p>
+                          <p className="text-sm text-sand-500">Teams in Season</p>
                           <button
                             onClick={handleSetSeasonTeams}
                             disabled={saving}
-                            className="text-sm text-emerald-500 hover:text-emerald-400"
+                            className="text-sm text-sand-500 hover:text-emerald-400"
                           >
                             Set All Teams
                           </button>
@@ -493,13 +493,13 @@ export default function League() {
             {/* Select season */}
             {seasons.length > 0 && (
               <div className="mt-4">
-                <label className="text-sm text-gray-400">
+                <label className="text-sm text-sand-500">
                   Select season to view/edit:
                 </label>
                 <select
                   value={selectedSeasonId || ''}
                   onChange={(e) => handleSelectSeason(e.target.value)}
-                  className="ml-2 bg-gray-800 border border-gray-700 rounded px-2 py-1"
+                  className="ml-2 bg-ocean-800 border border-ocean-700 rounded px-2 py-1"
                 >
                   <option value="">Select a season...</option>
                   {seasons.map((season) => (
@@ -521,7 +521,7 @@ export default function League() {
               <select
                 value={selectedSeasonId || ''}
                 onChange={(e) => handleSelectSeason(e.target.value)}
-                className="bg-gray-800 border border-gray-700 rounded px-2 py-1"
+                className="bg-ocean-800 border border-ocean-700 rounded px-2 py-1"
               >
                 <option value="">Select a season...</option>
                 {seasons.map((season) => (
@@ -533,10 +533,10 @@ export default function League() {
             </div>
 
             {!selectedSeasonId ? (
-              <p className="text-gray-400">Select a season to view the leaderboard</p>
+              <p className="text-sand-500">Select a season to view the leaderboard</p>
             ) : leaderboard.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-gray-400 mb-4">No teams in this season yet</p>
+                <p className="text-sand-500 mb-4">No teams in this season yet</p>
                 <button
                   onClick={handleSetSeasonTeams}
                   disabled={saving || teams.length === 0}
@@ -550,7 +550,7 @@ export default function League() {
                 {leaderboard.map((team, index) => (
                   <div
                     key={team.teamId}
-                    className={`flex items-center justify-between p-4 bg-gray-800 rounded ${
+                    className={`flex items-center justify-between p-4 bg-ocean-800 rounded ${
                       index === 0 ? 'border-2 border-yellow-500' : ''
                     }`}
                   >
@@ -559,13 +559,13 @@ export default function League() {
                         index === 0 ? 'text-yellow-500' :
                         index === 1 ? 'text-gray-300' :
                         index === 2 ? 'text-amber-600' :
-                        'text-gray-500'
+                        'text-sand-500'
                       }`}>
                         {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`}
                       </span>
                       <div>
                         <p className="font-medium text-lg">{team.teamName}</p>
-                        <p className="text-sm text-gray-400">
+                        <p className="text-sm text-sand-500">
                           {activeSeason?.name}
                         </p>
                       </div>
@@ -574,13 +574,13 @@ export default function League() {
                     <div className="flex items-center gap-4">
                       <div className="text-center">
                         <p className="text-3xl font-bold text-emerald-400">{team.drinkCount}</p>
-                        <p className="text-xs text-gray-400">drinks</p>
+                        <p className="text-xs text-sand-500">drinks</p>
                       </div>
                       <div className="flex flex-col gap-1">
                         <button
                           onClick={() => handleAddDrink(team.teamId)}
                           disabled={saving}
-                          className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 rounded text-sm"
+                          className="px-3 py-1 bg-sand-600 hover:bg-sand-500 rounded text-sm"
                         >
                           +1 🍺
                         </button>

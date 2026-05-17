@@ -1,135 +1,126 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
+
+type UserRole = 'admin' | 'teamLead';
+
+const ADMIN_PASSWORD = 'ZIMMER';
+const TEAM_LEAD_PASSWORD = 'Surfside';
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login, register, error } = useAuth();
-  const [isRegister, setIsRegister] = useState(false);
-  const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: '',
-  });
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [localError, setLocalError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLocalError(null);
+  const handleLogin = async (role: UserRole) => {
+    setError(null);
     setLoading(true);
 
     try {
-      if (isRegister) {
-        await register(formData.username, formData.email, formData.password);
-      } else {
-        await login(formData.email, formData.password);
-      }
+      // Store the role in localStorage for app-wide access
+      localStorage.setItem('wizardstaff_role', role);
+      localStorage.setItem('wizardstaff_auth', 'true');
+      
+      // Navigate to dashboard
       navigate('/');
     } catch (err) {
-      setLocalError((err as Error).message);
+      setError('Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
+  const handleSubmit = (e: React.FormEvent, role: UserRole) => {
+    e.preventDefault();
+    
+    const correctPassword = role === 'admin' ? ADMIN_PASSWORD : TEAM_LEAD_PASSWORD;
+    
+    if (password === correctPassword) {
+      handleLogin(role);
+    } else {
+      setError('Invalid password. Please try again.');
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: '#023E8A' }}>
       <div className="w-full max-w-md">
+        {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-emerald-500 mb-2">🪄 WizardStaff</h1>
-          <p className="text-gray-400">Fantasy Football Draft Platform</p>
+          <h1 className="text-5xl font-bold mb-3" style={{ color: '#D4A574' }}>
+            🍺
+          </h1>
+          <h2 className="text-3xl font-bold text-white mb-2">
+            WizardStaff
+          </h2>
+          <p className="text-sand-500">Drinking Buddy Draft</p>
         </div>
 
-        <div className="card">
-          <h2 className="text-xl font-semibold mb-4">
-            {isRegister ? 'Create Account' : 'Welcome Back'}
-          </h2>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {isRegister && (
-              <div>
-                <label className="block text-sm text-gray-400 mb-1">Username</label>
-                <input
-                  type="text"
-                  value={formData.username}
-                  onChange={(e) =>
-                    setFormData({ ...formData, username: e.target.value })
-                  }
-                  required
-                  className="w-full"
-                  placeholder="yourname"
-                />
-              </div>
-            )}
-
-            <div>
-              <label className="block text-sm text-gray-400 mb-1">Email</label>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                required
-                className="w-full"
-                placeholder="you@example.com"
-              />
+        {/* Login Options */}
+        <div className="space-y-4">
+          {/* Admin Login */}
+          <div className="card">
+            <div className="text-center mb-4">
+              <div className="text-4xl mb-2">👑</div>
+              <h3 className="text-xl font-semibold text-white">Admin</h3>
+              <p className="text-sm text-sand-500">Full access to all features</p>
             </div>
-
-            <div>
-              <label className="block text-sm text-gray-400 mb-1">Password</label>
+            
+            <form onSubmit={(e) => handleSubmit(e, 'admin')} className="space-y-3">
               <input
                 type="password"
-                value={formData.password}
-                onChange={(e) =>
-                  setFormData({ ...formData, password: e.target.value })
-                }
-                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter admin password"
                 className="w-full"
-                placeholder="••••••••"
               />
-            </div>
-
-            {(localError || error) && (
-              <div className="text-red-500 text-sm">{localError || error}</div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full btn-primary disabled:opacity-50"
-            >
-              {loading ? 'Loading...' : isRegister ? 'Create Account' : 'Login'}
-            </button>
-          </form>
-
-          <div className="mt-4 text-center text-sm text-gray-400">
-            {isRegister ? (
-              <>
-                Already have an account?{' '}
-                <button
-                  type="button"
-                  onClick={() => setIsRegister(false)}
-                  className="text-emerald-500 hover:underline"
-                >
-                  Login
-                </button>
-              </>
-            ) : (
-              <>
-                Need an account?{' '}
-                <button
-                  type="button"
-                  onClick={() => setIsRegister(true)}
-                  className="text-emerald-500 hover:underline"
-                >
-                  Register
-                </button>
-              </>
-            )}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full btn-primary"
+                style={{ backgroundColor: '#D4A574', color: '#023E8A' }}
+              >
+                {loading ? 'Logging in...' : 'Login as Admin'}
+              </button>
+            </form>
           </div>
+
+          {/* Team Lead Login */}
+          <div className="card">
+            <div className="text-center mb-4">
+              <div className="text-4xl mb-2">🏄</div>
+              <h3 className="text-xl font-semibold text-white">Team Lead</h3>
+              <p className="text-sm text-sand-500">Limited access for team management</p>
+            </div>
+            
+            <form onSubmit={(e) => handleSubmit(e, 'teamLead')} className="space-y-3">
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter team lead password"
+                className="w-full"
+              />
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full btn-primary"
+                style={{ backgroundColor: '#00B4D8', color: '#023E8A' }}
+              >
+                {loading ? 'Logging in...' : 'Login as Team Lead'}
+              </button>
+            </form>
+          </div>
+
+          {error && (
+            <p className="text-center text-red-400 text-sm mt-4">{error}</p>
+          )}
         </div>
+
+        {/* Footer */}
+        <p className="text-center text-sand-500 text-sm mt-8">
+          Use your assigned password to access the draft
+        </p>
       </div>
     </div>
   );

@@ -38,10 +38,10 @@ export default function CreateDrinker() {
 
   return (
     <div className="min-h-screen">
-      <header className="bg-gray-800 border-b border-gray-700">
+      <header className="bg-ocean-800 border-b border-ocean-700">
         <div className="max-w-3xl mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <button onClick={() => navigate(-1)} className="text-gray-400 hover:text-white">
+            <button onClick={() => navigate(-1)} className="text-sand-500 hover:text-white">
               ← Back
             </button>
             <h1 className="text-xl font-bold">🍺 Create Custom Drinker</h1>
@@ -59,17 +59,17 @@ export default function CreateDrinker() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Profile Photo */}
           <div>
-            <label className="block text-sm text-gray-400 mb-2">Profile Photo</label>
+            <label className="block text-sm text-sand-500 mb-2">Profile Photo</label>
             <div className="flex items-center gap-4">
               <div className="relative">
-                <div className="w-32 h-32 rounded-lg bg-gray-700 flex items-center justify-center overflow-hidden">
+                <div className="w-32 h-32 rounded-lg bg-ocean-700 flex items-center justify-center overflow-hidden">
                   {profileImage ? (
                     <img src={profileImage} alt="Preview" className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-4xl text-gray-500">🍺</span>
+                    <span className="text-4xl text-sand-500">🍺</span>
                   )}
                 </div>
-                <label className="absolute bottom-0 right-0 bg-emerald-600 p-2 rounded-full cursor-pointer hover:bg-emerald-700 transition-colors">
+                <label className="absolute bottom-0 right-0 bg-sand-600 p-2 rounded-full cursor-pointer hover:bg-sand-700 transition-colors">
                   <input
                     type="file"
                     accept="image/*"
@@ -95,7 +95,7 @@ export default function CreateDrinker() {
 
           {/* Name */}
           <div>
-            <label className="block text-sm text-gray-400 mb-2">Name *</label>
+            <label className="block text-sm text-sand-500 mb-2">Name *</label>
             <input
               type="text"
               value={name}
@@ -108,7 +108,7 @@ export default function CreateDrinker() {
 
           {/* Description */}
           <div>
-            <label className="block text-sm text-gray-400 mb-2">Description</label>
+            <label className="block text-sm text-sand-500 mb-2">Description</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -116,7 +116,7 @@ export default function CreateDrinker() {
               placeholder="Write a short description..."
               maxLength={500}
             />
-            <span className="text-sm text-gray-500">{description.length}/500 characters</span>
+            <span className="text-sm text-sand-500">{description.length}/500 characters</span>
           </div>
 
           {/* Submit */}

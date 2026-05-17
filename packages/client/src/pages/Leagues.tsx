@@ -70,10 +70,10 @@ export default function Leagues() {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <header className="bg-gray-800 border-b border-gray-700">
+      <header className="bg-ocean-800 border-b border-ocean-700">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <h1 className="text-xl font-bold text-emerald-500">🪄 WizardStaff</h1>
+            <h1 className="text-xl font-bold text-sand-500">🪄 WizardStaff</h1>
           </div>
         </div>
       </header>
@@ -82,7 +82,7 @@ export default function Leagues() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-2xl font-bold">Leagues</h2>
-            <p className="text-gray-400">Create or join a fantasy football league</p>
+            <p className="text-sand-500">Create or join a fantasy football league</p>
           </div>
           <div className="flex gap-2">
             <button
@@ -112,7 +112,7 @@ export default function Leagues() {
             <h3 className="text-lg font-semibold mb-4">Create New League</h3>
             <form onSubmit={handleCreate} className="space-y-4">
               <div>
-                <label className="block text-sm text-gray-400 mb-1">League Name</label>
+                <label className="block text-sm text-sand-500 mb-1">League Name</label>
                 <input
                   type="text"
                   value={formData.name}
@@ -127,7 +127,7 @@ export default function Leagues() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm text-gray-400 mb-1">
+                  <label className="block text-sm text-sand-500 mb-1">
                     Max Teams
                   </label>
                   <select
@@ -146,7 +146,7 @@ export default function Leagues() {
                 </div>
 
                 <div>
-                  <label className="block text-sm text-gray-400 mb-1">
+                  <label className="block text-sm text-sand-500 mb-1">
                     Scoring Format
                   </label>
                   <select
@@ -182,7 +182,7 @@ export default function Leagues() {
             <h3 className="text-lg font-semibold mb-4">Join League</h3>
             <form onSubmit={handleJoin} className="space-y-4">
               <div>
-                <label className="block text-sm text-gray-400 mb-1">
+                <label className="block text-sm text-sand-500 mb-1">
                   Invite Code
                 </label>
                 <input
@@ -211,11 +211,11 @@ export default function Leagues() {
         {/* League List */}
         {loading ? (
           <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-emerald-500"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-sand-500"></div>
           </div>
         ) : leagues.length === 0 ? (
           <div className="card text-center py-12">
-            <p className="text-gray-400">
+            <p className="text-sand-500">
               No leagues yet. Create or join one to get started!
             </p>
           </div>
@@ -226,7 +226,7 @@ export default function Leagues() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="font-semibold text-lg">{league.name}</h3>
-                    <div className="text-sm text-gray-400">
+                    <div className="text-sm text-sand-500">
                       <span>{league.teams?.length || 0}/{league.maxTeams} Teams</span>
                       <span className="mx-2">•</span>
                       <span>{league.scoringFormat} scoring</span>
@@ -236,7 +236,7 @@ export default function Leagues() {
                     <span
                       className={`text-xs px-2 py-1 rounded ${
                         league.draftStatus === 'in_progress'
-                          ? 'bg-emerald-600'
+                          ? 'bg-sand-600'
                           : league.draftStatus === 'completed'
                           ? 'bg-gray-600'
                           : 'bg-yellow-600'

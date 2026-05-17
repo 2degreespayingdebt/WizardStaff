@@ -117,7 +117,7 @@ export default function Draft() {
   if (loading && !board) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-emerald-500"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-sand-500"></div>
       </div>
     );
   }
@@ -140,10 +140,10 @@ export default function Draft() {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <header className="bg-gray-800 border-b border-gray-700">
+      <header className="bg-ocean-800 border-b border-ocean-700">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <button onClick={() => navigate('/leagues')} className="text-gray-400 hover:text-white">
+            <button onClick={() => navigate('/leagues')} className="text-sand-500 hover:text-white">
               ← Back
             </button>
             <h1 className="text-lg font-bold">🍺 Live Draft</h1>
@@ -153,7 +153,7 @@ export default function Draft() {
               value={selectedSeasonId}
               onChange={(e) => handleSeasonSelect(e.target.value)}
               disabled={loadingSeasons}
-              className="ml-4 bg-gray-700 border border-gray-600 rounded px-3 py-1 text-sm"
+              className="ml-4 bg-ocean-700 border border-gray-600 rounded px-3 py-1 text-sm"
             >
               <option value="">Select a season...</option>
               {seasons.map((season) => (
@@ -162,7 +162,7 @@ export default function Draft() {
                 </option>
               ))}
             </select>
-            <Link to="/players/new" className="text-sm text-emerald-500 hover:text-emerald-400 ml-auto">
+            <Link to="/players/new" className="text-sm text-sand-500 hover:text-emerald-400 ml-auto">
               + Create Custom Drinker
             </Link>
           </div>
@@ -170,10 +170,10 @@ export default function Draft() {
           {/* Draft Status */}
           <div className="flex items-center gap-4">
             <div className="text-right">
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-sand-500">
                 Round {draft.currentRound} • Pick {draft.currentPick}
               </p>
-              <p className="font-bold text-emerald-500">
+              <p className="font-bold text-sand-500">
                 {draft.status === 'paused' ? '⏸ Paused' : isMyTurn ? "🎯 Your Turn!" : "Waiting..."}
               </p>
             </div>
@@ -185,7 +185,7 @@ export default function Draft() {
                 disabled={loading}
                 className={`px-3 py-1 rounded text-sm ${
                   draft.status === 'paused'
-                    ? 'bg-emerald-600 hover:bg-emerald-500'
+                    ? 'bg-sand-600 hover:bg-sand-500'
                     : 'bg-yellow-600 hover:bg-yellow-500'
                 }`}
               >
@@ -213,7 +213,7 @@ export default function Draft() {
       
       <div className="flex h-[calc(100vh-64px)]">
         {/* Left Panel - Picks Made */}
-        <div className="w-1/3 border-r border-gray-700 p-4 overflow-y-auto">
+        <div className="w-1/3 border-r border-ocean-700 p-4 overflow-y-auto">
           <h3 className="font-semibold mb-4">📋 Picks Made</h3>
           
           <div className="space-y-1">
@@ -222,18 +222,18 @@ export default function Draft() {
                 key={`${pick.round}-${pick.pick}`}
                 className={`flex items-center justify-between py-2 px-3 rounded ${
                   pick.round === draft.currentRound && pick.pick === draft.currentPick
-                    ? 'bg-emerald-900 border border-emerald-500'
-                    : 'bg-gray-800'
+                    ? 'bg-sand-900 border border-sand-500'
+                    : 'bg-ocean-800'
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-gray-500 text-sm w-8">
+                  <span className="text-sand-500 text-sm w-8">
                     {pick.round}.{pick.pick}
                   </span>
                   {pick.playerId ? (
                     <div className="flex items-center gap-2">
                       {/* Small avatar for drafted player */}
-                      <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-700 flex-shrink-0">
+                      <div className="w-8 h-8 rounded-full overflow-hidden bg-ocean-700 flex-shrink-0">
                         {pick.playerImage ? (
                           <img 
                             src={pick.playerImage} 
@@ -248,13 +248,13 @@ export default function Draft() {
                       </div>
                       <div>
                         <p className="font-medium text-sm">{pick.playerName}</p>
-                        <p className="text-xs text-gray-400">
+                        <p className="text-xs text-sand-500">
                           {pick.teamName}
                         </p>
                       </div>
                     </div>
                   ) : (
-                    <span className="text-gray-500 text-sm">On the clock</span>
+                    <span className="text-sand-500 text-sm">On the clock</span>
                   )}
                 </div>
               </div>
@@ -266,7 +266,7 @@ export default function Draft() {
         <div className="flex-1 p-4 overflow-y-auto">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold">Available Drinkers</h3>
-            <span className="text-sm text-gray-400">
+            <span className="text-sm text-sand-500">
               {availablePlayers.length} available
             </span>
           </div>
@@ -289,10 +289,10 @@ export default function Draft() {
                 key={player.id}
                 className={`flex items-center justify-between p-3 rounded cursor-pointer transition-colors ${
                   selectedPlayer?.id === player.id
-                    ? 'bg-emerald-900 border border-emerald-500'
+                    ? 'bg-sand-900 border border-sand-500'
                     : isMyTurn
-                    ? 'bg-gray-800 hover:bg-gray-700'
-                    : 'bg-gray-800 opacity-50'
+                    ? 'bg-ocean-800 hover:bg-ocean-700'
+                    : 'bg-ocean-800 opacity-50'
                 }`}
               >
                 <div 
@@ -300,7 +300,7 @@ export default function Draft() {
                   onClick={() => isMyTurn && setSelectedPlayer(player)}
                 >
                   {/* Drinker Avatar */}
-                  <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-700 flex-shrink-0 border-2 border-gray-600">
+                  <div className="w-12 h-12 rounded-full overflow-hidden bg-ocean-700 flex-shrink-0 border-2 border-gray-600">
                     {player.profileImage ? (
                       <img 
                         src={player.profileImage} 
@@ -316,12 +316,12 @@ export default function Draft() {
                   <div className="flex-1 min-w-0">
                     <Link 
                       to={`/players/${player.id}`}
-                      className="font-medium hover:text-emerald-500 block truncate"
+                      className="font-medium hover:text-sand-500 block truncate"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {player.name}
                     </Link>
-                    <p className="text-sm text-gray-400 truncate">
+                    <p className="text-sm text-sand-500 truncate">
                       {player.team || 'Free Agent'}
                     </p>
                   </div>
@@ -330,7 +330,7 @@ export default function Draft() {
                   <p className="font-medium text-emerald-400">
                     {player.projectedPoints?.toFixed(1) || '--'}
                   </p>
-                  <p className="text-xs text-gray-400">pts</p>
+                  <p className="text-xs text-sand-500">pts</p>
                 </div>
               </div>
             ))}
@@ -338,7 +338,7 @@ export default function Draft() {
         </div>
         
         {/* Right Panel - Team Rosters */}
-        <div className="w-1/3 border-l border-gray-700 p-4 overflow-y-auto">
+        <div className="w-1/3 border-l border-ocean-700 p-4 overflow-y-auto">
           <h3 className="font-semibold mb-4">👥 Team Rosters</h3>
           
           {seasonTeams.length > 0 ? (
@@ -354,18 +354,18 @@ export default function Draft() {
                     <button
                       onClick={() => setSelectedTeamId(isSelected ? null : team.teamId)}
                       className={`w-full flex items-center justify-between p-2 rounded text-left ${
-                        isSelected ? 'bg-emerald-900 border border-emerald-500' : 'bg-gray-800'
+                        isSelected ? 'bg-sand-900 border border-sand-500' : 'bg-ocean-800'
                       }`}
                     >
                       <div className="flex items-center gap-2">
-                        <span className="text-gray-400 w-6">#{index + 1}</span>
+                        <span className="text-sand-500 w-6">#{index + 1}</span>
                         <span className="font-medium">{team.teamName}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-emerald-400 text-sm">
                           {teamPicks.length} 🍺
                         </span>
-                        <span className="text-gray-500">
+                        <span className="text-sand-500">
                           {isSelected ? '▲' : '▼'}
                         </span>
                       </div>
@@ -375,17 +375,17 @@ export default function Draft() {
                     {isSelected && (
                       <div className="mt-1 ml-4 space-y-1">
                         {teamPicks.length === 0 ? (
-                          <p className="text-gray-500 text-sm py-1">No picks yet</p>
+                          <p className="text-sand-500 text-sm py-1">No picks yet</p>
                         ) : (
                           teamPicks.map((pick, i) => (
                             <div
                               key={pick.id}
                               className="flex items-center gap-2 py-1 px-2 bg-gray-750 rounded text-sm"
                             >
-                              <span className="text-gray-500 w-8">
+                              <span className="text-sand-500 w-8">
                                 {pick.round}.{pick.pick}
                               </span>
-                              <div className="w-5 h-5 rounded-full overflow-hidden bg-gray-700 flex-shrink-0">
+                              <div className="w-5 h-5 rounded-full overflow-hidden bg-ocean-700 flex-shrink-0">
                                 {pick.playerImage ? (
                                   <img 
                                     src={pick.playerImage} 
@@ -409,7 +409,7 @@ export default function Draft() {
               })}
             </div>
           ) : (
-            <p className="text-gray-400 text-sm">
+            <p className="text-sand-500 text-sm">
               {selectedSeasonId ? 'No teams in this season' : 'Select a season above'}
             </p>
           )}
@@ -422,7 +422,7 @@ export default function Draft() {
           
           {/* Roster Preview */}
           <div className="space-y-2">
-            <p className="text-sm text-gray-400">Your drafted drinkers will appear here</p>
+            <p className="text-sm text-sand-500">Your drafted drinkers will appear here</p>
           </div>
         </div>
       </div>

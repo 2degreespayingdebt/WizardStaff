@@ -77,7 +77,7 @@ export default function PlayerProfile() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-emerald-500"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-sand-500"></div>
       </div>
     );
   }
@@ -97,10 +97,10 @@ export default function PlayerProfile() {
 
   return (
     <div className="min-h-screen">
-      <header className="bg-gray-800 border-b border-gray-700">
+      <header className="bg-ocean-800 border-b border-ocean-700">
         <div className="max-w-3xl mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <button onClick={() => navigate(-1)} className="text-gray-400 hover:text-white">
+            <button onClick={() => navigate(-1)} className="text-sand-500 hover:text-white">
               ← Back
             </button>
             <h1 className="text-xl font-bold">🍺 Drinker Profile</h1>
@@ -124,7 +124,7 @@ export default function PlayerProfile() {
         <div className="card">
           <div className="flex items-start gap-6 mb-6">
             <div className="relative">
-              <div className="w-32 h-32 rounded-lg bg-gray-700 flex items-center justify-center overflow-hidden">
+              <div className="w-32 h-32 rounded-lg bg-ocean-700 flex items-center justify-center overflow-hidden">
                 {player.profileImage ? (
                   <img
                     src={player.profileImage}
@@ -132,10 +132,10 @@ export default function PlayerProfile() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <span className="text-4xl text-gray-500">🍺</span>
+                  <span className="text-4xl text-sand-500">🍺</span>
                 )}
               </div>
-              <label className="absolute bottom-0 right-0 bg-emerald-600 p-2 rounded-full cursor-pointer hover:bg-emerald-700 transition-colors">
+              <label className="absolute bottom-0 right-0 bg-sand-600 p-2 rounded-full cursor-pointer hover:bg-sand-700 transition-colors">
                 <input
                   type="file"
                   accept="image/*"
@@ -156,16 +156,16 @@ export default function PlayerProfile() {
             <div className="flex-1">
               <h2 className="text-2xl font-bold">{player.name}</h2>
               <div className="flex items-center gap-3 mt-1">
-                <span className="text-lg text-emerald-500 font-medium">🍺 Drinker</span>
+                <span className="text-lg text-sand-500 font-medium">🍺 Drinker</span>
               </div>
-              <div className="flex items-center gap-4 mt-2 text-sm text-gray-400">
+              <div className="flex items-center gap-4 mt-2 text-sm text-sand-500">
                 <span>Rank: #{player.adp || 'N/A'}</span>
                 <span>Proj: {player.projectedPoints?.toFixed(1) || 'N/A'} pts</span>
               </div>
             </div>
           </div>
 
-          <div className="border-t border-gray-700 pt-6">
+          <div className="border-t border-ocean-700 pt-6">
             <h3 className="text-lg font-semibold mb-3">Description</h3>
             <div className="flex flex-col gap-3">
               <textarea
@@ -176,7 +176,7 @@ export default function PlayerProfile() {
                 maxLength={500}
               />
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-sand-500">
                   {description.length}/500 characters
                 </span>
                 <button
