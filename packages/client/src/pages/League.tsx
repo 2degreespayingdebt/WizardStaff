@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { api } from '../services/api';
+import { usePermissions } from '../hooks/usePermissions';
 import type { League, Team, Season, SeasonTeam } from '../types';
 
 type Tab = 'teams' | 'seasons' | 'leaderboard';
@@ -8,6 +9,7 @@ type Tab = 'teams' | 'seasons' | 'leaderboard';
 export default function League() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const perms = usePermissions();
   
   const [league, setLeague] = useState<League | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
@@ -293,6 +295,8 @@ export default function League() {
                   setShowTeamForm(true);
                 }}
                 className="btn-primary text-sm"
+                disabled={!perms.canCreateLeague}
+                title={!perms.canCreateLeague ? 'Admin only' : ''}
               >
                 + Add Team
               </button>
@@ -359,7 +363,9 @@ export default function League() {
                           setTeamName(team.name);
                           setShowTeamForm(true);
                         }}
+                        disabled={!perms.canEditAnyTeam}
                         className="text-sm text-sand-500 hover:text-white"
+                        title={!perms.canEditAnyTeam ? 'Admin only' : ''}
                       >
                         Edit
                       </button>
@@ -383,6 +389,8 @@ export default function League() {
                   setShowSeasonForm(true);
                 }}
                 className="btn-primary text-sm"
+                disabled={!perms.canCreateSeason}
+                title={!perms.canCreateSeason ? 'Admin only' : ''}
               >
                 + Add Season
               </button>
@@ -461,8 +469,9 @@ export default function League() {
                         {!season.isActive && (
                           <button
                             onClick={() => handleActivateSeason(season.id)}
-                            disabled={saving}
+                            disabled={saving || !perms.canActivateSeason}
                             className="text-sm text-sand-500 hover:text-emerald-400"
+                            title={!perms.canActivateSeason ? 'Admin only' : ''}
                           >
                             Activate
                           </button>
@@ -579,15 +588,17 @@ export default function League() {
                       <div className="flex flex-col gap-1">
                         <button
                           onClick={() => handleAddDrink(team.teamId)}
-                          disabled={saving}
-                          className="px-3 py-1 bg-sand-600 hover:bg-sand-500 rounded text-sm"
+                          disabled={saving || !perms.canEditAnyTeamDrinks}
+                          className="px-3 py-1 bg-sand-600 hover:bg-sand-500 rounded text-sm disabled:opacity-50"
+                          title={!perms.canEditAnyTeamDrinks ? 'Admin only' : ''}
                         >
                           +1 🍺
                         </button>
                         <button
                           onClick={() => handleRemoveDrink(team.teamId)}
-                          disabled={saving || team.drinkCount <= 0}
-                          className="px-3 py-1 bg-red-600 hover:bg-red-500 rounded text-sm"
+                          disabled={saving || team.drinkCount <= 0 || !perms.canEditAnyTeamDrinks}
+                          className="px-3 py-1 bg-red-600 hover:bg-red-500 rounded text-sm disabled:opacity-50"
+                          title={!perms.canEditAnyTeamDrinks ? 'Admin only' : ''}
                         >
                           -1 🍺
                         </button>

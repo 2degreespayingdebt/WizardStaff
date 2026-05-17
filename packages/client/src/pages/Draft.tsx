@@ -1,12 +1,14 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useDraftSocket } from '../hooks/useDraftSocket';
+import { usePermissions } from '../hooks/usePermissions';
 import { api } from '../services/api';
 import type { Player, Season, SeasonTeam } from '../types';
 
 export default function Draft() {
   const { id: draftIdFromUrl } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const perms = usePermissions();
   
   // Season selection state
   const [seasons, setSeasons] = useState<Season[]>([]);
@@ -162,7 +164,11 @@ export default function Draft() {
                 </option>
               ))}
             </select>
-            <Link to="/players/new" className="text-sm text-sand-500 hover:text-emerald-400 ml-auto">
+            <Link 
+              to="/players/new" 
+              className="text-sm text-sand-500 hover:text-emerald-400 ml-auto"
+              style={{ display: perms.canCreatePlayer ? 'inline' : 'none' }}
+            >
               + Create Custom Drinker
             </Link>
           </div>
@@ -182,12 +188,13 @@ export default function Draft() {
             {draft.status !== 'completed' && (
               <button
                 onClick={() => draft.status === 'paused' ? resumeDraft() : pauseDraft()}
-                disabled={loading}
+                disabled={loading || !perms.canPauseDraft}
                 className={`px-3 py-1 rounded text-sm ${
                   draft.status === 'paused'
                     ? 'bg-sand-600 hover:bg-sand-500'
                     : 'bg-yellow-600 hover:bg-yellow-500'
                 }`}
+                title={!perms.canPauseDraft ? 'Admin only' : ''}
               >
                 {draft.status === 'paused' ? '▶ Resume' : '⏸ Pause'}
               </button>
@@ -197,8 +204,9 @@ export default function Draft() {
             {draft.status !== 'completed' && picks.length > 0 && (
               <button
                 onClick={() => undoPick()}
-                disabled={loading}
-                className="px-3 py-1 rounded text-sm bg-red-600 hover:bg-red-500"
+                disabled={loading || !perms.canUndoPick}
+                className="px-3 py-1 rounded text-sm bg-red-600 hover:bg-red-500 disabled:opacity-50"
+                title={!perms.canUndoPick ? 'Admin only' : ''}
               >
                 ↩ Undo
               </button>
