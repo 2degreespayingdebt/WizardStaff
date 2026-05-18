@@ -147,7 +147,8 @@ export default function Draft() {
     setSelectedPlayer(null);
   };
   
-  if (loading && !board) {
+  // Show loading spinner while connecting to draft
+  if (draftIdFromUrl && !board) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-sand-500"></div>
@@ -155,8 +156,11 @@ export default function Draft() {
     );
   }
   
-  // Show selection modal when no draft is active
-  if (!board?.draft) {
+  // Show selection modal when: no draft in URL AND no board/draft loaded
+  const hasDraftId = !!draftIdFromUrl;
+  const showModal = !hasDraftId || !board?.draft;
+  
+  if (showModal) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#023E8A' }}>
         {/* Header */}
