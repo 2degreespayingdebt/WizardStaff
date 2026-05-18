@@ -229,13 +229,7 @@ export default function Draft() {
                 <label className="block text-sm text-sand-500 mb-2">Season</label>
                 <select
                   value={selectedSeasonId}
-                  onChange={(e) => {
-                    const seasonId = e.target.value;
-                    setSelectedSeasonId(seasonId);
-                    if (seasonId) {
-                      handleContinue();
-                    }
-                  }}
+                  onChange={(e) => setSelectedSeasonId(e.target.value)}
                   disabled={!selectedLeagueId}
                   className="w-full bg-ocean-700 border border-ocean-600 rounded px-3 py-2 disabled:opacity-50"
                 >
