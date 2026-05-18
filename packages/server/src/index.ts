@@ -161,7 +161,11 @@ io.on('connection', (socket) => {
   socket.on('join:draft', async (draftId: string) => {
     socket.join(draftId);
     const board = await draftModel.getDraftBoard(draftId);
-    socket.emit('draft:state', board);
+    if (board) {
+      socket.emit('draft:state', board);
+    } else {
+      socket.emit('draft:error', { error: 'Draft not found' });
+    }
   });
 
   // Make pick

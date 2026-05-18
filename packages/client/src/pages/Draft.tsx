@@ -111,9 +111,17 @@ export default function Draft() {
       return;
     }
     
-    // Navigate directly to draft page with season ID
-    // The actual draft data will be loaded when the page mounts
-    navigate(`/draft/${selectedSeasonId}`, { replace: true });
+    setContinuing(true);
+    try {
+      // Get or create draft for the selected season
+      const { draftId } = await api.getOrCreateDraft(selectedSeasonId);
+      navigate(`/draft/${draftId}`, { replace: true });
+    } catch (err) {
+      console.error('Failed to start draft:', err);
+      alert('Failed to start draft');
+    } finally {
+      setContinuing(false);
+    }
   };
   
   // Get picks for a specific team

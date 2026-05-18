@@ -297,12 +297,12 @@ export async function resumeDraft(draftId: string): Promise<Draft> {
 }
 
 export async function getDraftBoard(draftId: string): Promise<{
-  draft: Draft;
+  draft: Draft | null;
   picks: DraftPick[];
   availablePlayers: unknown[];
-}> {
+} | null> {
   const draft = await findDraftById(draftId);
-  if (!draft) throw new Error('Draft not found');
+  if (!draft) return null;
   
   const picksResult = await query(
     `SELECT dp.*, t.name as team_name, p.name as player_name, p.position as player_position, p.profile_image as player_image
