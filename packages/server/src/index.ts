@@ -9,7 +9,7 @@ import authRoutes from './routes/auth.js';
 import leagueRoutes from './routes/leagues.js';
 import playerRoutes from './routes/players.js';
 import teamRoutes from './routes/teams.js';
-import { authenticateToken, AuthRequest } from './middleware/auth.js';
+import { authenticateToken, optionalAuth, AuthRequest } from './middleware/auth.js';
 import * as seasonModel from './models/season.js';
 import * as draftModel from './models/draft.js';
 
@@ -121,7 +121,7 @@ app.post('/api/drafts/:id/undo', authenticateToken, async (req, res) => {
 });
 
 // Get or create draft for a season
-app.post('/api/drafts/season/:seasonId', authenticateToken, async (req, res) => {
+app.post('/api/drafts/season/:seasonId', optionalAuth, async (req, res) => {
   try {
     const seasonId = req.params.seasonId;
     
