@@ -236,7 +236,11 @@ export default function Leagues() {
         ) : (
           <div className="space-y-4">
             {leagues.map((league) => (
-              <div key={league.id} className="card">
+              <div 
+                key={league.id} 
+                className="card cursor-pointer hover:ring-2 hover:ring-sand-500"
+                onClick={() => navigate(`/leagues/${league.id}`)}
+              >
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="font-semibold text-lg">{league.name}</h3>

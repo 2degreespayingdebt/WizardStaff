@@ -126,6 +126,7 @@ export interface SeasonTeam {
   seed: number | null;
   drinkCount: number;
   teamName?: string;
+  avatarUrl?: string | null;
   createdAt: string;
 }
 

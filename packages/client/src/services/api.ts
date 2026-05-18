@@ -329,8 +329,47 @@ class ApiService {
     });
   }
 
+  async updateSeason(seasonId: string, name: string): Promise<Season> {
+    return this.request<Season>(`/leagues/seasons/${seasonId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ name }),
+    });
+  }
+
+  async activateSeason(seasonId: string): Promise<Season> {
+    return this.request<Season>(`/leagues/seasons/${seasonId}/activate`, {
+      method: 'POST',
+    });
+  }
+
   async getSeasonTeams(seasonId: string): Promise<SeasonTeam[]> {
     return this.request<SeasonTeam[]>(`/leagues/seasons/${seasonId}/teams`);
+  }
+
+  async addTeamToSeason(seasonId: string, teamId: string): Promise<void> {
+    return this.request<void>(`/leagues/seasons/${seasonId}/teams`, {
+      method: 'POST',
+      body: JSON.stringify({ teamId }),
+    });
+  }
+
+  async removeTeamFromSeason(seasonId: string, teamId: string): Promise<void> {
+    return this.request<void>(`/leagues/seasons/${seasonId}/teams/${teamId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async updateSeasonTeamOrder(seasonId: string, teamId: string, order: number): Promise<void> {
+    return this.request<void>(`/leagues/seasons/${seasonId}/teams/${teamId}/order`, {
+      method: 'PUT',
+      body: JSON.stringify({ order }),
+    });
+  }
+
+  async deleteSeason(seasonId: string): Promise<void> {
+    return this.request<void>(`/leagues/seasons/${seasonId}`, {
+      method: 'DELETE',
+    });
   }
 
   // Get draft ID for a season (creates if not exists)

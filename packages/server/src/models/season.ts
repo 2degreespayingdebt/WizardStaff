@@ -100,9 +100,16 @@ export async function removeTeamFromSeason(seasonId: string, teamId: string): Pr
   );
 }
 
+export async function updateSeasonTeamOrder(seasonId: string, teamId: string, order: number): Promise<void> {
+  await query(
+    `UPDATE season_teams SET seed = $1 WHERE season_id = $2 AND team_id = $3`,
+    [order, seasonId, teamId]
+  );
+}
+
 export async function getSeasonTeams(seasonId: string): Promise<SeasonTeam[]> {
   const result = await query(
-    `SELECT st.*, t.name as team_name
+    `SELECT st.*, t.name as team_name, t.avatar_url as avatar_url
      FROM season_teams st
      JOIN teams t ON t.id = st.team_id
      WHERE st.season_id = $1
@@ -189,6 +196,11 @@ function mapSeasonTeam(row: unknown): SeasonTeam {
     seed: r.seed,
     drinkCount: r.drink_count || 0,
     teamName: r.team_name,
+    avatarUrl: r.avatar_url || null,
     createdAt: r.created_at,
   };
+}
+
+export async function deleteSeason(seasonId: string): Promise<void> {
+  await query('DELETE FROM seasons WHERE id = $1', [seasonId]);
 }

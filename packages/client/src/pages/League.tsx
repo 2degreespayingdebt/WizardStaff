@@ -633,7 +633,8 @@ export default function League() {
                 {seasons.map((season) => (
                   <div
                     key={season.id}
-                    className={`p-3 bg-ocean-800 rounded ${
+                    onClick={() => navigate(`/leagues/${id}/seasons/${season.id}`)}
+                    className={`p-3 bg-ocean-800 rounded cursor-pointer hover:ring-2 hover:ring-sand-500 ${
                       season.isActive ? 'border border-sand-500' : ''
                     }`}
                   >
@@ -650,6 +651,12 @@ export default function League() {
                         )}
                       </div>
                       <div className="flex gap-2">
+                        <Link
+                          to={`/leagues/${id}/seasons/${season.id}`}
+                          className="text-sm text-sand-500 hover:text-white"
+                        >
+                          Details
+                        </Link>
                         <button
                           onClick={() => {
                             setEditingSeason(season);

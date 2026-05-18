@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Leagues from './pages/Leagues';
 import League from './pages/League';
+import Season from './pages/Season';
 import Draft from './pages/Draft';
 import PlayerProfile from './pages/PlayerProfile';
 import CreateDrinker from './pages/CreateDrinker';
@@ -55,6 +56,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <League />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/leagues/:leagueId/seasons/:seasonId"
+            element={
+              <ProtectedRoute>
+                <Season />
               </ProtectedRoute>
             }
           />

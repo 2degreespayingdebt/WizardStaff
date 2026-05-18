@@ -226,6 +226,45 @@ router.post('/:id/seasons', async (req: AuthRequest, res: Response) => {
   }
 });
 
+// Update season
+router.put('/seasons/:seasonId', async (req: AuthRequest, res: Response) => {
+  try {
+    const { name } = req.body;
+    
+    if (!name) {
+      return res.status(400).json({ error: 'Season name required' });
+    }
+    
+    const season = await seasonModel.updateSeason(req.params.seasonId, name);
+    res.json(season);
+  } catch (error) {
+    console.error('Update season error:', error);
+    res.status(500).json({ error: 'Failed to update season' });
+  }
+});
+
+// Activate season
+router.post('/seasons/:seasonId/activate', async (req: AuthRequest, res: Response) => {
+  try {
+    const season = await seasonModel.setActiveSeason(req.params.seasonId);
+    res.json(season);
+  } catch (error) {
+    console.error('Activate season error:', error);
+    res.status(500).json({ error: 'Failed to activate season' });
+  }
+});
+
+// Delete season
+router.delete('/seasons/:seasonId', async (req: AuthRequest, res: Response) => {
+  try {
+    await seasonModel.deleteSeason(req.params.seasonId);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Delete season error:', error);
+    res.status(500).json({ error: 'Failed to delete season' });
+  }
+});
+
 // Get teams for a season
 router.get('/seasons/:seasonId/teams', async (req: AuthRequest, res: Response) => {
   try {
@@ -234,6 +273,49 @@ router.get('/seasons/:seasonId/teams', async (req: AuthRequest, res: Response) =
   } catch (error) {
     console.error('Get season teams error:', error);
     res.status(500).json({ error: 'Failed to get season teams' });
+  }
+});
+
+// Add team to season
+router.post('/seasons/:seasonId/teams', async (req: AuthRequest, res: Response) => {
+  try {
+    const { teamId } = req.body;
+    if (!teamId) {
+      return res.status(400).json({ error: 'Team ID required' });
+    }
+    const seasonTeam = await seasonModel.addTeamToSeason(req.params.seasonId, teamId);
+    res.status(201).json(seasonTeam);
+  } catch (error) {
+    console.error('Add team to season error:', error);
+    res.status(500).json({ error: 'Failed to add team to season' });
+  }
+});
+
+// Remove team from season
+router.delete('/seasons/:seasonId/teams/:teamId', async (req: AuthRequest, res: Response) => {
+  try {
+    await seasonModel.removeTeamFromSeason(req.params.seasonId, req.params.teamId);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Remove team from season error:', error);
+    res.status(500).json({ error: 'Failed to remove team from season' });
+  }
+});
+
+// Update team order in season
+router.put('/seasons/:seasonId/teams/:teamId/order', async (req: AuthRequest, res: Response) => {
+  try {
+    const { order } = req.body;
+    
+    if (typeof order !== 'number' || order < 1) {
+      return res.status(400).json({ error: 'Valid order number required' });
+    }
+    
+    await seasonModel.updateSeasonTeamOrder(req.params.seasonId, req.params.teamId, order);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Update team order error:', error);
+    res.status(500).json({ error: 'Failed to update team order' });
   }
 });
 
