@@ -128,6 +128,13 @@ class ApiService {
     return response.json();
   }
 
+  async updateLeague(leagueId: string, updates: { name?: string }): Promise<League> {
+    return this.request<League>(`/leagues/${leagueId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates),
+    });
+  }
+
   async updateTeam(teamId: string, teamName: string): Promise<Team> {
     return this.request<Team>(`/teams/${teamId}`, {
       method: 'PUT',
@@ -225,14 +232,20 @@ class ApiService {
     });
   }
 
+  async deletePlayer(id: string): Promise<void> {
+    return this.request<void>(`/players/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
   async uploadPlayerAvatar(playerId: string, file: File): Promise<Player> {
     const formData = new FormData();
     formData.append('avatar', file);
     
-    const response = await fetch(`${this.baseUrl}/players/${playerId}/avatar`, {
+    const response = await fetch(`${API_BASE}/players/${playerId}/avatar`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${this.token}`,
+        'Authorization': `Bearer ${this.getToken()}`,
       },
       body: formData,
     });

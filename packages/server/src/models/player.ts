@@ -200,3 +200,7 @@ export async function checkPlayerDraftedInCurrentSeason(
   );
   return result.rows.length > 0;
 }
+
+export async function deletePlayer(id: string): Promise<void> {
+  await query('DELETE FROM players WHERE id = $1', [id]);
+}

@@ -136,6 +136,22 @@ router.post('/:id/avatar', upload.single('avatar'), async (req: AuthRequest, res
   }
 });
 
+// Delete player
+router.delete('/:id', async (req: AuthRequest, res: Response) => {
+  try {
+    const player = await playerModel.findPlayerById(req.params.id);
+    if (!player) {
+      return res.status(404).json({ error: 'Player not found' });
+    }
+    
+    await playerModel.deletePlayer(req.params.id);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Delete player error:', error);
+    res.status(500).json({ error: 'Failed to delete player' });
+  }
+});
+
 // Set player status (activate/inactivate)
 router.patch('/:id/status', async (req: AuthRequest, res: Response) => {
   try {

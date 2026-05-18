@@ -8,6 +8,7 @@ export interface User {
   passwordHash: string;
   displayName: string | null;
   avatarUrl: string | null;
+  role: string;
   createdAt: Date;
 }
 
