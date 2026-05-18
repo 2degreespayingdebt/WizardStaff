@@ -27,6 +27,10 @@ export default function League() {
   
   const [activeTab, setActiveTab] = useState<Tab>('teams');
   
+  // League edit state
+  const [editingName, setEditingName] = useState(false);
+  const [nameValue, setNameValue] = useState('');
+  
   // Team form state
   const [showTeamForm, setShowTeamForm] = useState(false);
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
@@ -69,6 +73,33 @@ export default function League() {
     } catch (err) {
       console.error('Failed to save team order:', err);
     }
+  };
+  
+  // League name editing functions
+  const startEditName = () => {
+    setNameValue(league?.name || '');
+    setEditingName(true);
+  };
+  
+  const saveName = async () => {
+    if (!nameValue.trim() || !league) return;
+    
+    setSaving(true);
+    try {
+      const updated = await api.updateLeague(league.id, { name: nameValue.trim() });
+      setLeague(updated);
+      setEditingName(false);
+    } catch (err) {
+      console.error('Failed to update league name:', err);
+      alert('Failed to update league name. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+  
+  const cancelEditName = () => {
+    setEditingName(false);
+    setNameValue('');
   };
   
   // Season form state
@@ -307,7 +338,27 @@ export default function League() {
               <button onClick={() => navigate('/leagues')} className="text-sand-500 hover:text-white">
                 ← Back
               </button>
-              <h1 className="text-lg md:text-xl font-bold" style={{ color: '#D4A574' }}>{league.name}</h1>
+              <h1 className="text-lg md:text-xl font-bold" style={{ color: '#D4A574' }}>
+                {editingName ? (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={nameValue}
+                      onChange={(e) => setNameValue(e.target.value)}
+                      className="input w-48"
+                      autoFocus
+                    />
+                    <button onClick={saveName} disabled={saving} className="btn-primary text-sm">
+                      Save
+                    </button>
+                    <button onClick={cancelEditName} className="btn-secondary text-sm">
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <span>{league.name}</span>
+                )}
+              </h1>
             </div>
             <div className="flex items-center gap-3">
               <button
@@ -328,9 +379,33 @@ export default function League() {
 
       <main className="max-w-full mx-auto px-2 md:px-3 md:px-4 py-4 md:py-4 md:py-8">
         <div className="card mb-4 md:mb-6">
-          <h2 className="text-lg md:text-xl md:text-xl md:text-2xl font-bold">{league.name}</h2>
+          {editingName ? (
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={nameValue}
+                onChange={(e) => setNameValue(e.target.value)}
+                className="input w-48"
+                autoFocus
+              />
+              <button onClick={saveName} disabled={saving} className="btn-primary text-sm">
+                Save
+              </button>
+              <button onClick={cancelEditName} className="btn-secondary text-sm">
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <h2 
+              className="text-lg md:text-xl md:text-xl md:text-2xl font-bold cursor-pointer hover:text-white flex items-center gap-2"
+              onClick={() => startEditName()}
+              title="Click to edit league name"
+            >
+              {league.name} ✏️
+            </h2>
+          )}
           <p className="text-sand-500">
-            {role === 'admin' ? '👑 Admin' : '🏄 Team Lead'} • {teams.length}/{league.maxTeams} Teams
+            {role === 'admin' ? '👑 Admin' : '🏄 Team Lead'} • {teams.length} Teams
           </p>
         </div>
 

@@ -128,6 +128,13 @@ class ApiService {
     return response.json();
   }
 
+  async updateLeague(leagueId: string, updates: { name?: string }): Promise<League> {
+    return this.request<League>(`/leagues/${leagueId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates),
+    });
+  }
+
   async updateTeam(teamId: string, teamName: string): Promise<Team> {
     return this.request<Team>(`/teams/${teamId}`, {
       method: 'PUT',
@@ -222,6 +229,12 @@ class ApiService {
     return this.request<Player>(`/players/${id}`, {
       method: 'PUT',
       body: JSON.stringify(updates),
+    });
+  }
+
+  async deletePlayer(id: string): Promise<void> {
+    return this.request<void>(`/players/${id}`, {
+      method: 'DELETE',
     });
   }
 

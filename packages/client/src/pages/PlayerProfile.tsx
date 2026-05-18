@@ -212,9 +212,9 @@ export default function PlayerProfile() {
           <div className="flex items-start gap-6 mb-6">
             <div className="relative">
               <div className="w-32 h-32 rounded-lg bg-ocean-700 flex items-center justify-center overflow-hidden">
-                {player.profileImage || player.profile_image ? (
+                {player.profile_image ? (
                   <img
-                    src={player.profileImage || player.profile_image}
+                    src={player.profile_image}
                     alt={player.name}
                     className="w-full h-full object-cover"
                   />
