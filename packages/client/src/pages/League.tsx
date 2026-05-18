@@ -335,6 +335,7 @@ export default function League() {
             <div className="flex items-center gap-3 md:p-4">
               <Link to="/" className="text-sand-500 hover:text-white">Dashboard</Link>
               <Link to="/leagues" className="text-sand-500 hover:text-white">Leagues</Link>
+              <Link to="/draft" className="text-sand-500 hover:text-white">Draft Room</Link>
               <button onClick={() => navigate('/leagues')} className="text-sand-500 hover:text-white">
                 ← Back
               </button>

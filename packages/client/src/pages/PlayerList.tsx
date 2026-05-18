@@ -78,8 +78,11 @@ export default function PlayerList() {
               <button onClick={() => navigate('/leagues')} className="text-sand-500 hover:text-white">
                 Leagues
               </button>
-              <button className="text-white hover:text-sand-500">
+              <button onClick={() => navigate('/players')} className="text-white hover:text-sand-500">
                 Players
+              </button>
+              <button onClick={() => navigate('/draft')} className="text-white hover:text-sand-500">
+                Draft Room
               </button>
             </nav>
           </div>

@@ -1,23 +1,18 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useDraftSocket } from '../hooks/useDraftSocket';
 import { usePermissions } from '../hooks/usePermissions';
 import { api } from '../services/api';
-import type { Player, League, Season, SeasonTeam } from '../types';
+import type { Player, Season, SeasonTeam } from '../types';
 
 export default function Draft() {
   const { id: draftIdFromUrl } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const perms = usePermissions();
   
-  // League and season selection state (for when no draft is active)
-  const [leagues, setLeagues] = useState<League[]>([]);
+  // Season selection state
   const [seasons, setSeasons] = useState<Season[]>([]);
-  const [selectedLeagueId, setSelectedLeagueId] = useState<string>('');
   const [selectedSeasonId, setSelectedSeasonId] = useState<string>('');
-  const [loadingSelections, setLoadingSelections] = useState(true);
-  
-  // Draft state
   const [seasonTeams, setSeasonTeams] = useState<SeasonTeam[]>([]);
   const [loadingSeasons, setLoadingSeasons] = useState(true);
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
@@ -49,47 +44,35 @@ export default function Draft() {
   // Countdown timer - syncs when pick changes
   const [timeLeft, setTimeLeft] = useState(120);
   
-  // Load leagues on mount (when no draft is active)
-  useEffect(() => {
-    async function loadLeagues() {
-      try {
-        const data = await api.getLeagues();
-        // Sort alphabetically by name
-        const sorted = [...data].sort((a, b) => a.name.localeCompare(b.name));
-        setLeagues(sorted);
-        if (sorted.length > 0) {
-          setSelectedLeagueId(sorted[0].id);
-        }
-      } catch (err) {
-        console.error('Failed to load leagues:', err);
-      } finally {
-        setLoadingSelections(false);
-      }
-    }
-    loadLeagues();
-  }, []);
-  
-  // Load seasons when league changes
+  // Load seasons on mount
   useEffect(() => {
     async function loadSeasons() {
-      if (!selectedLeagueId) {
-        setSeasons([]);
-        return;
-      }
       try {
-        const data = await api.getSeasons(selectedLeagueId);
-        // Sort alphabetically by name
-        const sorted = [...data].sort((a, b) => a.name.localeCompare(b.name));
-        setSeasons(sorted);
-        setSelectedSeasonId('');
+        // Get leagues first to find one with seasons
+        const leagues = await api.getLeagues();
+        if (leagues.length > 0) {
+          const leagueId = leagues[0].id;
+          const seasonsData = await api.getSeasons(leagueId);
+          setSeasons(seasonsData);
+          
+          // Auto-select active season if available
+          const activeSeason = seasonsData.find((s: Season) => s.isActive);
+          if (activeSeason) {
+            setSelectedSeasonId(activeSeason.id);
+            const teams = await api.getSeasonLeaderboard(activeSeason.id);
+            setSeasonTeams(teams);
+          }
+        }
       } catch (err) {
         console.error('Failed to load seasons:', err);
+      } finally {
+        setLoadingSeasons(false);
       }
     }
     loadSeasons();
-  }, [selectedLeagueId]);
+  }, []);
   
-  // Handle season selection - create/navigate to draft
+  // Handle season selection
   const handleSeasonSelect = async (seasonId: string) => {
     setSelectedSeasonId(seasonId);
     setSelectedTeamId(null);
@@ -101,19 +84,6 @@ export default function Draft() {
     } catch (err) {
       console.error('Failed to start draft:', err);
     }
-  };
-
-  const [continuing, setContinuing] = useState(false);
-
-  const handleContinue = async () => {
-    if (!selectedSeasonId || !selectedLeagueId) {
-      alert('Please select both a league and a season');
-      return;
-    }
-    
-    // Navigate directly to draft page with season ID
-    // The actual draft data will be loaded when the page mounts
-    navigate(`/draft/${selectedSeasonId}`, { replace: true });
   };
   
   // Get picks for a specific team
@@ -155,102 +125,14 @@ export default function Draft() {
     );
   }
   
-  // Show selection modal when no draft is active
   if (!board?.draft) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#023E8A' }}>
-        {/* Header */}
-        <header className="bg-ocean-800 border-b border-ocean-700 fixed top-0 left-0 right-0">
-          <div className="max-w-7xl mx-auto px-3 md:px-4 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-3 md:p-4">
-              <Link to="/" className="text-sand-500 hover:text-white">Dashboard</Link>
-              <Link to="/leagues" className="text-sand-500 hover:text-white">Leagues</Link>
-              <Link to="/draft" className="text-white hover:text-sand-500">Draft Room</Link>
-              <h1 className="text-lg font-bold">🍺 Live Draft</h1>
-            </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => {
-                  localStorage.removeItem('wizardstaff_role');
-                  localStorage.removeItem('wizardstaff_auth');
-                  localStorage.removeItem('wizardstaff_token');
-                  navigate('/login');
-                }}
-                className="btn-secondary text-sm"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </header>
-        
-        {/* Selection Panel */}
-        <div className="mt-20 bg-ocean-800 p-6 rounded-lg border border-ocean-700 max-w-md w-full mx-4">
-          <h2 className="text-xl font-bold mb-4">Select League & Season</h2>
-          <p className="text-sand-500 mb-6">Choose a league and season to view or start a draft.</p>
-          
-          {loadingSelections ? (
-            <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-sand-500"></div>
-            </div>
-          ) : (
-            <>
-              {/* League Dropdown */}
-              <div className="mb-4">
-                <label className="block text-sm text-sand-500 mb-2">League</label>
-                <select
-                  value={selectedLeagueId}
-                  onChange={(e) => setSelectedLeagueId(e.target.value)}
-                  className="w-full bg-ocean-700 border border-ocean-600 rounded px-3 py-2"
-                >
-                  <option value="">Select a league...</option>
-                  {leagues.map((league) => (
-                    <option key={league.id} value={league.id}>
-                      {league.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              
-              {/* Season Dropdown */}
-              <div className="mb-6">
-                <label className="block text-sm text-sand-500 mb-2">Season</label>
-                <select
-                  value={selectedSeasonId}
-                  onChange={(e) => {
-                    const seasonId = e.target.value;
-                    setSelectedSeasonId(seasonId);
-                    if (seasonId) {
-                      handleContinue();
-                    }
-                  }}
-                  disabled={!selectedLeagueId}
-                  className="w-full bg-ocean-700 border border-ocean-600 rounded px-3 py-2 disabled:opacity-50"
-                >
-                  <option value="">Select a season...</option>
-                  {seasons.map((season) => (
-                    <option key={season.id} value={season.id}>
-                      {season.name} {season.isActive ? '(Active)' : ''}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              
-              {/* Bottom buttons */}
-              <div className="flex justify-between items-center">
-                <Link to="/leagues" className="text-sand-500 hover:text-white">
-                  ← Back to Leagues
-                </Link>
-                <button
-                  onClick={() => handleContinue()}
-                  disabled={!selectedSeasonId || !selectedLeagueId || continuing}
-                  className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {continuing ? 'Loading...' : 'Continue'}
-                </button>
-              </div>
-            </>
-          )}
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">Draft not found</p>
+          <button onClick={() => navigate('/leagues')} className="btn-primary">
+            Back to Leagues
+          </button>
         </div>
       </div>
     );
@@ -266,15 +148,39 @@ export default function Draft() {
           <div className="flex items-center gap-3 md:p-4">
             <Link to="/" className="text-sand-500 hover:text-white">Dashboard</Link>
             <Link to="/leagues" className="text-sand-500 hover:text-white">Leagues</Link>
-            <Link to="/draft" className="text-white hover:text-sand-500">Draft Room</Link>
+            <button onClick={() => navigate('/leagues')} className="text-sand-500 hover:text-white">
+              ← Back
+            </button>
             <h1 className="text-lg font-bold">🍺 Live Draft</h1>
             
-            {/* Current Season Display */}
-            {selectedSeasonId && (
-              <span className="ml-4 text-sand-500">
-                {seasons.find(s => s.id === selectedSeasonId)?.name || 'Season'}
-              </span>
-            )}
+            {/* Season Selector */}
+            <select
+              value={selectedSeasonId}
+              onChange={(e) => handleSeasonSelect(e.target.value)}
+              disabled={loadingSeasons}
+              className="ml-4 bg-ocean-700 border border-gray-600 rounded px-3 py-1 text-sm"
+            >
+              <option value="">Select a season...</option>
+              {seasons.map((season) => (
+                <option key={season.id} value={season.id}>
+                  {season.name} {season.isActive ? '(Active)' : ''}
+                </option>
+              ))}
+            </select>
+            <Link 
+              to="/players/new" 
+              className="text-sm text-sand-500 hover:text-emerald-400"
+              style={{ display: perms.canCreatePlayer ? 'inline' : 'none' }}
+            >
+              + Create Custom Drinker
+            </Link>
+            <Link 
+              to="/players/bulk-import" 
+              className="text-sm text-sand-500 hover:text-emerald-400 ml-4"
+              style={{ display: perms.canCreatePlayer ? 'inline' : 'none' }}
+            >
+              📥 Bulk Import
+            </Link>
           </div>
           
           {/* Draft Status & Logout */}

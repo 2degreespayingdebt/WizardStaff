@@ -68,6 +68,14 @@ export default function App() {
             }
           />
           <Route
+            path="/draft"
+            element={
+              <ProtectedRoute>
+                <Draft />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/draft/:id"
             element={
               <ProtectedRoute>

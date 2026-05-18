@@ -112,6 +112,9 @@ export default function Leagues() {
               <Link to="/players" className="text-white hover:text-sand-500">
                 Players
               </Link>
+              <Link to="/draft" className="text-white hover:text-sand-500">
+                Draft Room
+              </Link>
             </nav>
           </div>
           <div className="flex items-center gap-3">
