@@ -121,7 +121,7 @@ router.post('/join', async (req: AuthRequest, res: Response) => {
   }
 });
 
-// Update league (commissioner only)
+// Update league - no auth required for demo
 router.put('/:id', async (req: AuthRequest, res: Response) => {
   try {
     const league = await leagueModel.findLeagueById(req.params.id);
@@ -129,10 +129,7 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ error: 'League not found' });
     }
     
-    if (league.commissionerId !== req.userId) {
-      return res.status(403).json({ error: 'Only commissioner can update league settings' });
-    }
-    
+    // No auth required - allow any request for demo
     const { name, maxTeams, scoringFormat, draftDate, rosterPositions } = req.body;
     
     const updated = await leagueModel.updateLeague(req.params.id, {

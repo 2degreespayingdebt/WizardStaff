@@ -5,6 +5,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'wizardstaff-dev-secret-change-in-p
 
 export interface AuthRequest extends Request {
   userId?: string;
+  userRole?: string;
 }
 
 export function authenticateToken(
@@ -20,8 +21,9 @@ export function authenticateToken(
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
+    const decoded = jwt.verify(token, JWT_SECRET) as { userId: string; role: string };
     req.userId = decoded.userId;
+    req.userRole = decoded.role;
     next();
   } catch {
     return res.status(403).json({ error: 'Invalid or expired token' });
@@ -39,8 +41,9 @@ export function optionalAuth(
 
   if (token) {
     try {
-      const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
+      const decoded = jwt.verify(token, JWT_SECRET) as { userId: string; role: string };
       req.userId = decoded.userId;
+      req.userRole = decoded.role;
     } catch {
       // Invalid token, but we don't care - continue without userId
     }
@@ -48,13 +51,13 @@ export function optionalAuth(
   next();
 }
 
-export function generateToken(userId: string): string {
-  return jwt.sign({ userId }, JWT_SECRET, { expiresIn: '7d' });
+export function generateToken(userId: string, role: string): string {
+  return jwt.sign({ userId, role }, JWT_SECRET, { expiresIn: '7d' });
 }
 
-export function verifyToken(token: string): { userId: string } | null {
+export function verifyToken(token: string): { userId: string; role: string } | null {
   try {
-    return jwt.verify(token, JWT_SECRET) as { userId: string };
+    return jwt.verify(token, JWT_SECRET) as { userId: string; role: string };
   } catch {
     return null;
   }

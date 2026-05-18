@@ -27,7 +27,7 @@ router.post('/register', async (req: Request, res: Response) => {
     const passwordHash = await bcrypt.hash(password, 10);
     const user = await userModel.createUser(username, email, passwordHash, displayName);
     
-    const token = generateToken(user.id);
+    const token = generateToken(user.id, user.role || 'user');
     
     res.status(201).json({
       user: {
@@ -63,7 +63,7 @@ router.post('/login', async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
     
-    const token = generateToken(user.id);
+    const token = generateToken(user.id, user.role || 'user');
     
     res.json({
       user: {
