@@ -23,7 +23,7 @@ export default function Draft() {
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   const [mobileTab, setMobileTab] = useState<'picks' | 'available' | 'teams'>('available');
   
-  const { board, loading, makePick, pauseDraft, resumeDraft, undoPick, startDraft, error: draftError, initialized } = useDraftSocket({ draftId: draftIdFromUrl || null });
+  const { board, loading, makePick, pauseDraft, resumeDraft, undoPick, startDraft, error: draftError, initialized, saveDraft } = useDraftSocket({ draftId: draftIdFromUrl || null });
 
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [pendingDraftPlayer, setPendingDraftPlayer] = useState<Player | null>(null);
@@ -373,6 +373,27 @@ export default function Draft() {
               </button>
             )}
 
+            {/* Save Button */}
+            {(localPicks.length > 0 || serverPicks.length > 0) && (
+              <button
+                onClick={async () => {
+                  const toSave = localPicks.map(lp => ({
+                    teamId: lp.teamId,
+                    playerId: lp.playerId,
+                    round: lp.round,
+                    pick: lp.pick,
+                  }));
+                  await saveDraft(toSave);
+                  setLocalPicks([]);
+                }}
+                disabled={loading}
+                className="px-2 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50"
+                title="Save draft results to database"
+              >
+                💾 Save
+              </button>
+            )}
+
             {/* Timer */}
             <div className={`font-mono text-lg ${timeLeft <= 10 ? 'text-red-500' : 'text-white'}`}>
               {timeLeft}s
@@ -412,7 +433,7 @@ export default function Draft() {
         </div>
         
         {/* Left Panel - Picks Made - Desktop */}
-        <div className={`w-[38%] border-r border-ocean-700 p-3 md:p-4 overflow-y-auto ${
+        <div className={`w-[19%] border-r border-ocean-700 p-3 md:p-4 overflow-y-auto ${
           mobileTab !== 'picks' ? 'hidden md:block' : ''
         }`}>
           <h3 className="font-semibold mb-4">📋 Picks Made</h3>
@@ -534,7 +555,7 @@ export default function Draft() {
         </div>
         
         {/* Right Panel - Team Rosters */}
-        <div className={`w-[38%] border-l border-ocean-700 p-3 md:p-4 overflow-y-auto ${
+        <div className={`w-[49%] border-l border-ocean-700 p-3 md:p-4 overflow-y-auto ${
           mobileTab !== 'teams' ? 'hidden md:block' : ''
         }`}>
           <h3 className="font-semibold mb-4">👥 Team Rosters</h3>

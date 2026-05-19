@@ -148,7 +148,24 @@ app.post("/api/drafts/:id/resume", optionalAuth, async (req, res) => {
     io.to(req.params.id).emit('draft:state', board);
     res.json({ draft });
   } catch (error) {
-    console.error('Resume draft error:', error);
+    console.error('Save draft error:', error);
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+// Save draft — persist local picks to DB
+app.post("/api/drafts/:id/save", optionalAuth, async (req, res) => {
+  try {
+    const { localPicks } = req.body as {
+      localPicks: Array<{ teamId: string; playerId: string; round: number; pick: number }>;
+    };
+    if (Array.isArray(localPicks)) {
+      await draftModel.saveDraftLocalPicks(req.params.id, localPicks);
+    }
+    const board = await draftModel.getDraftBoard(req.params.id);
+    res.json({ success: true, board });
+  } catch (error) {
+    console.error('Save draft error:', error);
     res.status(500).json({ error: (error as Error).message });
   }
 });

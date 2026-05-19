@@ -284,6 +284,45 @@ export async function undoPick(draftId: string): Promise<{ draft: Draft; pick: D
   }
 }
 
+export async function saveDraftLocalPicks(
+  draftId: string,
+  localPicks: Array<{ teamId: string; playerId: string; round: number; pick: number }>
+): Promise<void> {
+  const client = await getClient();
+  try {
+    await client.query('BEGIN');
+    for (const lp of localPicks) {
+      if (lp.playerId.startsWith('temp-')) continue; // skip temp IDs
+      // Check if already exists
+      const exists = await client.query(
+        `SELECT id FROM draft_picks WHERE draft_id=$1 AND team_id=$2 AND player_id=$3`,
+        [draftId, lp.teamId, lp.playerId]
+      );
+      if (exists.rows.length === 0) {
+        await client.query(
+          `INSERT INTO draft_picks (draft_id, round, pick, team_id, player_id, selected_at)
+           VALUES ($1, $2, $3, $4, $5, NOW())`,
+          [draftId, lp.round, lp.pick, lp.teamId, lp.playerId]
+        );
+        // Add player to team's roster
+        await client.query(
+          `INSERT INTO roster_slots (team_id, player_id, slot_type, position)
+           SELECT $1, $2, 'starter', p.position
+           FROM players p WHERE p.id = $2
+           ON CONFLICT DO NOTHING`,
+          [lp.teamId, lp.playerId]
+        );
+      }
+    }
+    await client.query('COMMIT');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 export async function resumeDraft(draftId: string): Promise<Draft> {
   const draft = await findDraftById(draftId);
   if (!draft) throw new Error('Draft not found');
