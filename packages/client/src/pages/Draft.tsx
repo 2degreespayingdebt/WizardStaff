@@ -23,17 +23,20 @@ export default function Draft() {
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   const [mobileTab, setMobileTab] = useState<'picks' | 'available' | 'teams'>('available');
   
-  const { board, loading, makePick, pauseDraft, resumeDraft, undoPick } = useDraftSocket({ draftId: draftIdFromUrl || null });
-  
+  const { board, loading, makePick, pauseDraft, resumeDraft, undoPick, startDraft, error: draftError, initialized } = useDraftSocket({ draftId: draftIdFromUrl || null });
+
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [leagueName, setLeagueName] = useState('');
+  const [currentPickerTeamId, setCurrentPickerTeamId] = useState<string>('');
+  const [pickerDropdownOpen, setPickerDropdownOpen] = useState(false);
   
   // Filter available players by search
   const availablePlayers = useMemo(() => {
     if (!board?.availablePlayers) return [];
-    
+
     let players = board.availablePlayers;
-    
+
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       players = players.filter(
@@ -42,8 +45,8 @@ export default function Draft() {
           p.team?.toLowerCase().includes(query)
       );
     }
-    
-    return players;
+
+    return [...players].sort((a, b) => a.name.localeCompare(b.name));
   }, [board?.availablePlayers, searchQuery]);
   
   // Countdown timer - syncs when pick changes
@@ -130,6 +133,21 @@ export default function Draft() {
     return board.picks.filter(p => p.teamId === teamId);
   };
   
+  // Load league name when draft board loads
+  useEffect(() => {
+    async function loadLeagueName() {
+      if (board?.draft?.leagueId) {
+        try {
+          const league = await api.getLeague(board.draft.leagueId);
+          setLeagueName(league.name);
+        } catch {
+          setLeagueName('');
+        }
+      }
+    }
+    loadLeagueName();
+  }, [board?.draft?.leagueId]);
+
   // Reset timer when pick changes
   useEffect(() => {
     if (board?.draft) {
@@ -137,11 +155,28 @@ export default function Draft() {
     }
   }, [board?.draft?.currentPick, board?.draft?.currentRound]);
   
-  // Countdown effect (pauses when draft is paused)
+  // Load season teams when draft board loads (handles direct URL navigation too)
   useEffect(() => {
-    if (!board?.draft || board.draft.status !== 'active') return;
+    async function loadTeams() {
+      const sid = selectedSeasonId || board?.draft?.seasonId;
+      if (!sid) return;
+      try {
+        const teams = await api.getSeasonTeams(sid);
+        const sorted = [...teams].sort((a, b) => (a.seed ?? 999) - (b.seed ?? 999));
+        setSeasonTeams(sorted);
+      } catch (err) {
+        console.error('Failed to load season teams:', err);
+      }
+    }
+    loadTeams();
+  }, [selectedSeasonId, board?.draft?.seasonId]);
+
+  // Countdown effect (only runs when draft is active, not scheduled)
+  useEffect(() => {
+    if (!board?.draft) return;
+    if (board.draft.status !== 'active') return;
     if (timeLeft <= 0) return;
-    
+
     const timer = setTimeout(() => setTimeLeft(t => t - 1), 1000);
     return () => clearTimeout(timer);
   }, [timeLeft, board?.draft?.status]);
@@ -150,16 +185,22 @@ export default function Draft() {
   const isMyTurn = true; // TODO: Check if current user's team
   
   const handleMakePick = () => {
-    if (!selectedPlayer || !board?.draft?.currentManagerId) return;
-    makePick(board.draft.currentManagerId, selectedPlayer.id);
+    if (!selectedPlayer) return;
+    const teamId = currentPickerTeamId || board?.draft?.currentManagerId;
+    if (!teamId) return;
+    makePick(teamId, selectedPlayer.id);
     setSelectedPlayer(null);
   };
   
   // Show loading spinner while connecting to draft
-  if (draftIdFromUrl && !board) {
+  if (draftIdFromUrl && !initialized) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-sand-500"></div>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#023E8A' }}>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 mx-auto mb-4" style={{ borderColor: '#D4A574' }}></div>
+          <p className="text-sand-500 text-sm">Loading draft...</p>
+          {draftError && <p className="text-red-400 text-xs mt-2">{draftError}</p>}
+        </div>
       </div>
     );
   }
@@ -266,83 +307,86 @@ export default function Draft() {
   
   return (
     <div className="min-h-screen">
-      {/* Header */}
+      {/* Header — 40% shorter, centered branding, compact controls */}
       <header className="bg-ocean-800 border-b border-ocean-700">
-        <div className="max-w-7xl mx-auto px-3 md:px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3 md:p-4">
-            <Link to="/" className="text-sand-500 hover:text-white">Dashboard</Link>
-            <Link to="/leagues" className="text-sand-500 hover:text-white">Leagues</Link>
-            <Link to="/draft" className="text-white hover:text-sand-500">Draft Room</Link>
-            <h1 className="text-lg font-bold">🍺 Live Draft</h1>
-            
-            {/* Current Season Display */}
-            {selectedSeasonId && (
-              <span className="ml-4 text-sand-500">
-                {seasons.find(s => s.id === selectedSeasonId)?.name || 'Season'}
-              </span>
-            )}
+        <div className="max-w-7xl mx-auto px-3 py-1.5 flex items-center justify-between">
+
+          {/* Left: Compact Nav */}
+          <div className="flex items-center gap-3">
+            <Link to="/" className="text-sand-500 hover:text-white text-sm">Dashboard</Link>
+            <Link to="/leagues" className="text-sand-500 hover:text-white text-sm">Leagues</Link>
+            <Link to="/draft" className="text-white hover:text-sand-500 text-sm">Draft Room</Link>
           </div>
-          
-          {/* Draft Status & Logout */}
-          <div className="flex items-center gap-3 md:p-4">
-            <div className="text-right">
-              <p className="text-sm text-sand-500">
-                Round {draft.currentRound} • Pick {draft.currentPick}
+
+          {/* Center: League + Season Branding */}
+          <div className="text-center">
+            <h1 className="text-base font-bold text-sand-500 leading-tight">
+              🍺 {leagueName}{leagueName ? ' – ' : ''}{selectedSeasonId ? (seasons.find(s => s.id === selectedSeasonId)?.name || 'Season') : board?.draft?.seasonId ? 'Draft' : ''}
+            </h1>
+          </div>
+
+          {/* Right: Draft Controls */}
+          <div className="flex items-center gap-2">
+            <div className="text-right hidden sm:block">
+              <p className="text-xs text-sand-500">
+                R{draft.currentRound} · P{draft.currentPick}
               </p>
-              <p className="font-bold text-sand-500">
-                {draft.status === 'paused' ? '⏸ Paused' : isMyTurn ? "🎯 Your Turn!" : "Waiting..."}
+              <p className="text-xs font-bold text-sand-500">
+                {draft.status === 'paused' ? '⏸ Paused' : draft.status === 'scheduled' ? 'Ready' : isMyTurn ? "🎯 Your Turn!" : "Waiting"}
               </p>
             </div>
-            
-            {/* Pause/Resume Button */}
+
+            {/* Start/Pause Toggle Button */}
             {draft.status !== 'completed' && (
               <button
-                onClick={() => draft.status === 'paused' ? resumeDraft() : pauseDraft()}
+                onClick={() => {
+                  if (draft.status === 'scheduled') {
+                    startDraft();
+                  } else if (draft.status === 'paused') {
+                    resumeDraft();
+                  } else {
+                    pauseDraft();
+                  }
+                }}
                 disabled={loading || !perms.canPauseDraft}
-                className={`px-3 py-1 rounded text-sm ${
-                  draft.status === 'paused'
-                    ? 'bg-sand-600 hover:bg-sand-500'
+                className={`px-2 py-1 rounded text-xs ${
+                  draft.status === 'scheduled'
+                    ? 'bg-green-600 hover:bg-green-500'
+                    : draft.status === 'paused'
+                    ? 'bg-green-600 hover:bg-green-500'
                     : 'bg-yellow-600 hover:bg-yellow-500'
                 }`}
                 title={!perms.canPauseDraft ? 'Admin only' : ''}
               >
-                {draft.status === 'paused' ? '▶ Resume' : '⏸ Pause'}
+                {draft.status === 'scheduled'
+                  ? '▶ Start'
+                  : draft.status === 'paused'
+                  ? '▶ Resume'
+                  : '⏸ Pause'}
               </button>
             )}
-            
+
             {/* Undo Button */}
             {draft.status !== 'completed' && picks.length > 0 && (
               <button
                 onClick={() => undoPick()}
                 disabled={loading || !perms.canUndoPick}
-                className="px-3 py-1 rounded text-sm bg-red-600 hover:bg-red-500 disabled:opacity-50"
+                className="px-2 py-1 rounded text-xs bg-red-600 hover:bg-red-500 disabled:opacity-50"
                 title={!perms.canUndoPick ? 'Admin only' : ''}
               >
-                ↩ Undo
+                ↩
               </button>
             )}
-            
-            {/* Logout Button */}
-            <button
-              onClick={() => {
-                localStorage.removeItem('wizardstaff_role');
-                localStorage.removeItem('wizardstaff_auth');
-                localStorage.removeItem('wizardstaff_token');
-                navigate('/login');
-              }}
-              className="btn-secondary text-sm"
-            >
-              Logout
-            </button>
-            
-            <div className={`text-xl md:text-2xl font-mono ${timeLeft <= 10 ? 'text-red-500' : 'text-white'}`}>
+
+            {/* Timer */}
+            <div className={`font-mono text-lg ${timeLeft <= 10 ? 'text-red-500' : 'text-white'}`}>
               {timeLeft}s
             </div>
           </div>
         </div>
       </header>
       
-      <div className="flex flex-col md:flex-row h-[calc(100vh-64px)]">
+      <div className="flex flex-col md:flex-row h-[calc(100vh-52px)]">
         
         {/* Mobile: Tab buttons instead of 3 columns */}
         <div className="md:hidden flex border-b border-ocean-700">
@@ -373,7 +417,7 @@ export default function Draft() {
         </div>
         
         {/* Left Panel - Picks Made - Desktop */}
-        <div className={`w-full md:w-1/3 border-r border-ocean-700 p-3 md:p-4 overflow-y-auto ${
+        <div className={`w-[38%] border-r border-ocean-700 p-3 md:p-4 overflow-y-auto ${
           mobileTab !== 'picks' ? 'hidden md:block' : ''
         }`}>
           <h3 className="font-semibold mb-4">📋 Picks Made</h3>
@@ -385,6 +429,8 @@ export default function Draft() {
                 className={`flex items-center justify-between py-2 px-3 rounded ${
                   pick.round === draft.currentRound && pick.pick === draft.currentPick
                     ? 'bg-sand-900 border border-sand-500'
+                    : pick.playerId
+                    ? 'bg-amber-900/40 border border-amber-700'
                     : 'bg-ocean-800'
                 }`}
               >
@@ -397,8 +443,8 @@ export default function Draft() {
                       {/* Small avatar for drafted player */}
                       <div className="w-8 h-8 rounded-full overflow-hidden bg-ocean-700 flex-shrink-0">
                         {pick.playerImage ? (
-                          <img 
-                            src={pick.playerImage} 
+                          <img
+                            src={pick.playerImage}
                             alt={pick.playerName}
                             className="w-full h-full object-cover"
                           />
@@ -410,9 +456,7 @@ export default function Draft() {
                       </div>
                       <div>
                         <p className="font-medium text-sm">{pick.playerName}</p>
-                        <p className="text-xs text-sand-500">
-                          {pick.teamName}
-                        </p>
+                        <p className="text-xs font-bold" style={{ color: '#D4A574' }}>Drafted</p>
                       </div>
                     </div>
                   ) : (
@@ -429,10 +473,61 @@ export default function Draft() {
           mobileTab !== 'available' ? 'hidden md:block' : ''
         }`}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold">Available Drinkers</h3>
-            <span className="text-sm text-sand-500">
-              {availablePlayers.length} available
-            </span>
+            <div className="flex items-center gap-3">
+              <h3 className="font-semibold">Available Drinkers</h3>
+              <span className="text-sm text-sand-500">
+                {availablePlayers.length} available
+              </span>
+
+              {/* Team Filter Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setPickerDropdownOpen(!pickerDropdownOpen)}
+                  className="bg-ocean-700 border border-ocean-600 rounded px-2 py-1 text-sm flex items-center gap-2 cursor-pointer min-w-[140px]"
+                >
+                  <span className="flex-1 text-left truncate">
+                    {currentPickerTeamId
+                      ? `${seasonTeams.find(t => t.teamId === currentPickerTeamId)?.teamName ?? ''}`
+                      : 'Drafting Team'}
+                  </span>
+                  <span className="text-sand-500 text-xs">▼</span>
+                </button>
+                {pickerDropdownOpen && (
+                  <div className="absolute top-full left-0 mt-1 bg-ocean-700 border border-ocean-600 rounded shadow-lg z-50 min-w-[180px] overflow-y-auto max-h-60">
+                    <button
+                      onClick={() => { setCurrentPickerTeamId(''); setPickerDropdownOpen(false); }}
+                      className={`w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-ocean-600 text-left ${
+                        currentPickerTeamId === '' ? 'bg-ocean-600 text-sand-500' : ''
+                      }`}
+                    >
+                      All Teams
+                    </button>
+                    {[...seasonTeams].sort((a, b) => (a.seed ?? 999) - (b.seed ?? 999)).map((team) => (
+                      <button
+                        key={team.teamId}
+                        onClick={() => { setCurrentPickerTeamId(team.teamId); setPickerDropdownOpen(false); }}
+                        className={`w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-ocean-600 text-left ${
+                          currentPickerTeamId === team.teamId ? 'bg-ocean-600 text-sand-500' : ''
+                        }`}
+                      >
+                        <div className="w-5 h-5 rounded-full overflow-hidden bg-ocean-500 flex-shrink-0">
+                          {team.avatarUrl ? (
+                            <img src={team.avatarUrl} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-[8px]">👥</div>
+                          )}
+                        </div>
+                        <span>#{team.seed ?? '?'}</span>
+                        <span className="truncate">{team.teamName}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {pickerDropdownOpen && (
+                  <div className="fixed inset-0 z-40" onClick={() => setPickerDropdownOpen(false)} />
+                )}
+              </div>
+            </div>
           </div>
           
           {/* Search */}
@@ -454,40 +549,30 @@ export default function Draft() {
                 className={`flex items-center justify-between p-3 rounded cursor-pointer transition-colors ${
                   selectedPlayer?.id === player.id
                     ? 'bg-sand-900 border border-sand-500'
-                    : isMyTurn
-                    ? 'bg-ocean-800 hover:bg-ocean-700'
-                    : 'bg-ocean-800 opacity-50'
+                    : 'bg-ocean-800 hover:bg-ocean-700'
                 }`}
               >
-                <div 
+                <div
                   className="flex items-center gap-3 flex-1"
-                  onClick={() => isMyTurn && setSelectedPlayer(player)}
+                  onClick={() => setSelectedPlayer(player)}
                 >
                   {/* Drinker Avatar */}
-                  <div className="w-12 h-12 rounded-full overflow-hidden bg-ocean-700 flex-shrink-0 border-2 border-gray-600">
+                  <div className="w-48 h-48 rounded-full overflow-hidden bg-ocean-700 flex-shrink-0 border-2 border-gray-600">
                     {player.profileImage ? (
-                      <img 
-                        src={player.profileImage} 
+                      <img
+                        src={player.profileImage}
                         alt={player.name}
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-xl md:text-2xl">
+                      <div className="w-full h-full flex items-center justify-center text-3xl">
                         🍺
                       </div>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <Link 
-                      to={`/players/${player.id}`}
-                      className="font-medium hover:text-sand-500 block truncate"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {player.name}
-                    </Link>
-                    <p className="text-sm text-sand-500 truncate">
-                      {player.team || 'Free Agent'}
-                    </p>
+                    <span className="font-medium hover:text-sand-500 block truncate">{player.name}</span>
+                    <p className="text-sm text-sand-500 truncate">{player.team || 'Free Agent'}</p>
                   </div>
                 </div>
                 <div className="text-right flex-shrink-0 ml-2">
@@ -502,20 +587,20 @@ export default function Draft() {
         </div>
         
         {/* Right Panel - Team Rosters */}
-        <div className={`w-full md:w-1/3 border-l border-ocean-700 p-3 md:p-4 overflow-y-auto ${
+        <div className={`w-[38%] border-l border-ocean-700 p-3 md:p-4 overflow-y-auto ${
           mobileTab !== 'teams' ? 'hidden md:block' : ''
         }`}>
           <h3 className="font-semibold mb-4">👥 Team Rosters</h3>
           
           {seasonTeams.length > 0 ? (
-            <div className="space-y-2">
+            <div className="space-y-0 divide-y divide-ocean-700">
               {/* Team List - Click to view their picks */}
-              {seasonTeams.map((team, index) => {
+              {seasonTeams.map((team) => {
                 const teamPicks = getTeamPicks(team.teamId);
                 const isSelected = selectedTeamId === team.teamId;
-                
+
                 return (
-                  <div key={team.teamId}>
+                  <div key={team.teamId} className="pt-2 first:pt-0 pb-2">
                     {/* Team Header - Click to expand */}
                     <button
                       onClick={() => setSelectedTeamId(isSelected ? null : team.teamId)}
@@ -524,7 +609,14 @@ export default function Draft() {
                       }`}
                     >
                       <div className="flex items-center gap-2">
-                        <span className="text-sand-500 w-6">#{index + 1}</span>
+                        <span className="text-sand-500 w-6">#{team.seed ?? '?'}</span>
+                        <div className="w-8 h-8 rounded-full overflow-hidden bg-ocean-700 flex-shrink-0">
+                          {team.avatarUrl ? (
+                            <img src={team.avatarUrl} alt={team.teamName} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-xs">👥</div>
+                          )}
+                        </div>
                         <span className="font-medium">{team.teamName}</span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -576,11 +668,99 @@ export default function Draft() {
             </div>
           ) : (
             <p className="text-sand-500 text-sm">
-              {selectedSeasonId ? 'No teams in this season' : 'Select a season above'}
+              {selectedSeasonId ? 'No teams in this season' : 'Loading teams...'}
             </p>
           )}
         </div>
       </div>
+
+      {/* Player Detail Modal */}
+      {selectedPlayer && (
+        <div
+          className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+          onClick={() => setSelectedPlayer(null)}
+        >
+          <div
+            className="bg-ocean-800 rounded-lg border border-ocean-700 max-w-md w-full overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-ocean-700">
+              <h3 className="font-bold text-lg">🍺 Drinker Details</h3>
+              <button
+                onClick={() => setSelectedPlayer(null)}
+                className="text-sand-500 hover:text-white text-xl"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-4">
+              <div className="flex items-start gap-4">
+                {/* Large Avatar */}
+                <div className="w-24 h-24 rounded-full overflow-hidden bg-ocean-700 flex-shrink-0 border-2 border-gray-600">
+                  {selectedPlayer.profileImage ? (
+                    <img
+                      src={selectedPlayer.profileImage}
+                      alt={selectedPlayer.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-3xl">
+                      🍺
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-xl font-bold">{selectedPlayer.name}</h4>
+                  <p className="text-sand-500">{selectedPlayer.team || 'Free Agent'}</p>
+                  <p className="text-sm text-sand-500 mt-1">
+                    Rank: #{selectedPlayer.adp || 'N/A'}
+                  </p>
+                  <p className="text-sm text-sand-500">
+                    Projected: {selectedPlayer.projectedPoints?.toFixed(1) || '--'} pts
+                  </p>
+                  {selectedPlayer.description && (
+                    <p className="text-sm text-sand-400 mt-2 italic">
+                      "{selectedPlayer.description}"
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex flex-col gap-2 p-4 border-t border-ocean-700">
+              {draftError && (
+                <p className="text-sm text-red-400 bg-red-900/30 p-2 rounded">{draftError}</p>
+              )}
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setSelectedPlayer(null)}
+                  className="px-4 py-2 rounded bg-ocean-700 hover:bg-ocean-600"
+                >
+                  Close
+                </button>
+                {board?.draft && board.draft.status === 'active' && (
+                  <button
+                    onClick={() => {
+                      const teamId = currentPickerTeamId || board.draft.currentManagerId;
+                      if (!teamId) return;
+                      makePick(teamId, selectedPlayer.id);
+                      setSelectedPlayer(null);
+                    }}
+                    disabled={loading}
+                    className="px-4 py-2 rounded bg-green-600 hover:bg-green-500 disabled:opacity-50"
+                  >
+                    {loading ? 'Drafting...' : 'Draft 🍺'}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

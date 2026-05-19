@@ -62,7 +62,8 @@ export async function createDraftForSeason(
   pickTimeSeconds = 120
 ): Promise<Draft> {
   const result = await query(
-    `INSERT INTO drafts (league_id, season_id, pick_time_seconds) VALUES ($1, $2, $3) RETURNING *`,
+    `INSERT INTO drafts (league_id, season_id, pick_time_seconds, status)
+     VALUES ($1, $2, $3, 'scheduled') RETURNING *`,
     [leagueId, seasonId, pickTimeSeconds]
   );
   return mapDraft(result.rows[0]);
@@ -125,9 +126,8 @@ export async function makePick(
     
     const draft = await findDraftById(draftId);
     if (!draft) throw new Error('Draft not found');
-    console.error('Error location:', new Error().stack);
     if (draft.status !== 'active') throw new Error('Draft is not active');
-    if (draft.currentManagerId !== teamId) throw new Error('Not your turn');
+    if (!draft.draftOrder.includes(teamId)) throw new Error('Team is not part of this draft');
     
     // Get current pick number
     const currentPickNum = (draft.currentRound - 1) * draft.draftOrder.length + draft.currentPick;
@@ -194,7 +194,6 @@ export async function makePick(
 export async function pauseDraft(draftId: string): Promise<Draft> {
   const draft = await findDraftById(draftId);
   if (!draft) throw new Error('Draft not found');
-    console.error('Error location:', new Error().stack);
   if (draft.status !== 'active') throw new Error('Draft is not active');
   
   await query(
@@ -212,7 +211,6 @@ export async function undoPick(draftId: string): Promise<{ draft: Draft; pick: D
     
     const draft = await findDraftById(draftId);
     if (!draft) throw new Error('Draft not found');
-    console.error('Error location:', new Error().stack);
     if (draft.status !== 'active') throw new Error('Draft is not active');
     
     // Get the most recent pick
@@ -289,7 +287,6 @@ export async function undoPick(draftId: string): Promise<{ draft: Draft; pick: D
 export async function resumeDraft(draftId: string): Promise<Draft> {
   const draft = await findDraftById(draftId);
   if (!draft) throw new Error('Draft not found');
-    console.error('Error location:', new Error().stack);
   if (draft.status !== 'paused') throw new Error('Draft is not paused');
   
   await query(
@@ -320,7 +317,9 @@ export async function getDraftBoard(draftId: string): Promise<{
   
   // Get available players for next pick (limit to 50 for performance)
   const availableResult = await query(
-    `SELECT p.* FROM players p
+    `SELECT p.id, p.name, p.position, p.team, p.status, p.projected_points,
+            p.adp, p.profile_image, p.description
+     FROM players p
      WHERE p.status = 'active'
      AND p.id NOT IN (SELECT player_id FROM draft_picks WHERE draft_id = $1 AND player_id IS NOT NULL)
      ORDER BY p.adp ASC NULLS LAST
@@ -330,8 +329,24 @@ export async function getDraftBoard(draftId: string): Promise<{
   
   return {
     draft,
-    picks: picksResult.rows,
-    availablePlayers: availableResult.rows,
+    picks: picksResult.rows.map((row) => ({
+      ...row,
+      teamName: row.team_name,
+      playerName: row.player_name,
+      playerPosition: row.player_position,
+      playerImage: row.player_image,
+    })),
+    availablePlayers: availableResult.rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      position: row.position,
+      team: row.team,
+      status: row.status,
+      projected_points: row.projected_points,
+      adp: row.adp,
+      profileImage: row.profile_image,
+      description: row.description,
+    })),
   };
 }
 
