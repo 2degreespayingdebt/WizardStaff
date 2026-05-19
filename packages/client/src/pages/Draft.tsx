@@ -28,6 +28,7 @@ export default function Draft() {
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [pendingDraftPlayer, setPendingDraftPlayer] = useState<Player | null>(null);
   const [localPicks, setLocalPicks] = useState<DraftPick[]>([]);
+  const [viewingPick, setViewingPick] = useState<DraftPick | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   
   // Filter available players by search
@@ -355,9 +356,17 @@ export default function Draft() {
             {/* Undo Button */}
             {draft.status !== 'completed' && localPicks.length + serverPicks.length > 0 && (
               <button
-                onClick={() => undoPick()}
+                onClick={() => {
+                  if (localPicks.length > 0) {
+                    // Optimistically undo the last local pick
+                    setLocalPicks(prev => prev.slice(0, -1));
+                  } else {
+                    // Server pick — call undo API
+                    undoPick();
+                  }
+                }}
                 disabled={loading || !perms.canUndoPick}
-                className="px-2 py-1 rounded text-xs bg-red-600 hover:bg-red-500 disabled:opacity-50"
+                className="px-2 py-1 rounded text-xs bg-sand-600 hover:bg-sand-500 disabled:opacity-50"
                 title={!perms.canUndoPick ? 'Admin only' : ''}
               >
                 ↩
@@ -412,11 +421,12 @@ export default function Draft() {
             {[...serverPicks, ...localPicks].map((pick) => (
               <div
                 key={`${pick.round}-${pick.pick}`}
-                className={`flex items-center justify-between py-2 px-3 rounded ${
+                onClick={() => pick.playerId && setViewingPick(pick)}
+                className={`flex items-center justify-between py-2 px-3 rounded cursor-pointer transition-colors ${
                   pick.round === draft.currentRound && pick.pick === draft.currentPick
                     ? 'bg-sand-900 border border-sand-500'
                     : pick.playerId
-                    ? 'bg-amber-900/40 border border-amber-700'
+                    ? 'bg-amber-900/40 border border-amber-700 hover:bg-amber-800/50'
                     : 'bg-ocean-800'
                 }`}
               >
@@ -597,32 +607,32 @@ export default function Draft() {
         </div>
       </div>
 
-      {/* Player Detail Modal */}
+      {/* Player Detail Modal — shown in view mode OR draft mode */}
       {selectedPlayer && (
         <div
           className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
           onClick={() => setSelectedPlayer(null)}
         >
           <div
-            className="bg-ocean-800 rounded-lg border border-ocean-700 max-w-md w-full overflow-hidden"
+            className="bg-ocean-800 rounded-lg border border-ocean-700 max-w-2xl w-full overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
             <div className="flex items-center justify-between p-4 border-b border-ocean-700">
-              <h3 className="font-bold text-lg">🍺 Drinker Details</h3>
+              <h3 className="font-bold text-xl">🍺 Drinker Details</h3>
               <button
                 onClick={() => setSelectedPlayer(null)}
-                className="text-sand-500 hover:text-white text-xl"
+                className="text-sand-500 hover:text-white text-2xl"
               >
                 ✕
               </button>
             </div>
 
-            {/* Modal Body */}
-            <div className="p-4">
-              <div className="flex items-start gap-4">
-                {/* Large Avatar */}
-                <div className="w-24 h-24 rounded-full overflow-hidden bg-ocean-700 flex-shrink-0 border-2 border-gray-600">
+            {/* Modal Body — 100% larger */}
+            <div className="p-6">
+              <div className="flex flex-col items-center gap-6">
+                {/* Large Avatar — 200% larger */}
+                <div className="w-80 h-80 rounded-full overflow-hidden bg-ocean-700 flex-shrink-0 border-2 border-gray-600">
                   {selectedPlayer.profileImage ? (
                     <img
                       src={selectedPlayer.profileImage}
@@ -630,22 +640,22 @@ export default function Draft() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-3xl">
+                    <div className="w-full h-full flex items-center justify-center text-6xl">
                       🍺
                     </div>
                   )}
                 </div>
-                <div className="flex-1">
-                  <h4 className="text-xl font-bold">{selectedPlayer.name}</h4>
-                  <p className="text-sand-500">{selectedPlayer.team || 'Free Agent'}</p>
-                  <p className="text-sm text-sand-500 mt-1">
+                <div className="text-center space-y-2">
+                  <h4 className="text-4xl font-bold">{selectedPlayer.name}</h4>
+                  <p className="text-xl text-sand-500">{selectedPlayer.team || 'Free Agent'}</p>
+                  <p className="text-base text-sand-500">
                     Rank: #{selectedPlayer.adp || 'N/A'}
                   </p>
-                  <p className="text-sm text-sand-500">
+                  <p className="text-base text-sand-500">
                     Projected: {selectedPlayer.projected_points ? Number(selectedPlayer.projected_points).toFixed(1) : '--'} pts
                   </p>
                   {selectedPlayer.description && (
-                    <p className="text-sm text-sand-400 mt-2 italic">
+                    <p className="text-base text-sand-400 mt-2 italic">
                       "{selectedPlayer.description}"
                     </p>
                   )}
@@ -678,6 +688,71 @@ export default function Draft() {
                   </button>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Pick Modal — click a pick in Picks Made column */}
+      {viewingPick && (
+        <div
+          className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+          onClick={() => setViewingPick(null)}
+        >
+          <div
+            className="bg-ocean-800 rounded-lg border border-ocean-700 max-w-md w-full overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-ocean-700">
+              <h3 className="font-bold text-lg">🍺 Drafted Drinker</h3>
+              <button
+                onClick={() => setViewingPick(null)}
+                className="text-sand-500 hover:text-white text-2xl"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6">
+              <div className="flex items-center gap-6">
+                {/* Large Avatar */}
+                <div className="w-32 h-32 rounded-full overflow-hidden bg-ocean-700 flex-shrink-0">
+                  {viewingPick.playerImage ? (
+                    <img
+                      src={viewingPick.playerImage}
+                      alt={viewingPick.playerName}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-4xl">
+                      🍺
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <h4 className="text-xl font-bold">{viewingPick.playerName}</h4>
+                  <p className="text-sm text-sand-500 mt-1">
+                    Drafted #{viewingPick.round}.{viewingPick.pick}
+                  </p>
+                  {viewingPick.teamName && (
+                    <p className="text-sm text-sand-500 mt-1">
+                      Team: {viewingPick.teamName}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex justify-end gap-2 p-4 border-t border-ocean-700">
+              <button
+                onClick={() => setViewingPick(null)}
+                className="px-4 py-2 rounded bg-ocean-700 hover:bg-ocean-600"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>

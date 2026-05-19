@@ -126,7 +126,7 @@ export async function makePick(
     
     const draft = await findDraftById(draftId);
     if (!draft) throw new Error('Draft not found');
-    if (draft.status !== 'active') throw new Error('Draft is not active');
+    if (draft.status !== 'active' && draft.status !== 'scheduled') throw new Error('Draft is not active');
     if (!draft.draftOrder.includes(teamId)) throw new Error('Team is not part of this draft');
     
     // Get current pick number
