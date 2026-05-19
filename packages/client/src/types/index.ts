@@ -80,6 +80,7 @@ export interface Player {
 export interface Draft {
   id: string;
   leagueId: string;
+  seasonId: string | null;
   status: 'scheduled' | 'active' | 'paused' | 'completed';
   currentPick: number;
   currentRound: number;

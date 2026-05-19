@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useDraftSocket } from '../hooks/useDraftSocket';
 import { usePermissions } from '../hooks/usePermissions';
 import { api } from '../services/api';
-import type { Player, League, Season, SeasonTeam } from '../types';
+import type { Player, League, Season, SeasonTeam, DraftPick } from '../types';
 
 export default function Draft() {
   const { id: draftIdFromUrl } = useParams<{ id: string }>();
@@ -26,10 +26,9 @@ export default function Draft() {
   const { board, loading, makePick, pauseDraft, resumeDraft, undoPick, startDraft, error: draftError, initialized } = useDraftSocket({ draftId: draftIdFromUrl || null });
 
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
+  const [pendingDraftPlayer, setPendingDraftPlayer] = useState<Player | null>(null);
+  const [localPicks, setLocalPicks] = useState<DraftPick[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [leagueName, setLeagueName] = useState('');
-  const [currentPickerTeamId, setCurrentPickerTeamId] = useState<string>('');
-  const [pickerDropdownOpen, setPickerDropdownOpen] = useState(false);
   
   // Filter available players by search
   const availablePlayers = useMemo(() => {
@@ -46,8 +45,12 @@ export default function Draft() {
       );
     }
 
+    // Exclude locally drafted players too
+    const draftedIds = new Set(localPicks.map(lp => lp.playerId));
+    players = players.filter(p => !draftedIds.has(p.id));
+
     return [...players].sort((a, b) => a.name.localeCompare(b.name));
-  }, [board?.availablePlayers, searchQuery]);
+  }, [board?.availablePlayers, searchQuery, localPicks]);
   
   // Countdown timer - syncs when pick changes
   const [timeLeft, setTimeLeft] = useState(120);
@@ -127,27 +130,12 @@ export default function Draft() {
     }
   };
   
-  // Get picks for a specific team
+  // Get picks for a specific team (merges server picks + local optimistics)
   const getTeamPicks = (teamId: string) => {
-    if (!board?.picks) return [];
-    return board.picks.filter(p => p.teamId === teamId);
+    const serverPicks = board?.picks ?? [];
+    return [...serverPicks, ...localPicks.filter(lp => lp.teamId === teamId)];
   };
   
-  // Load league name when draft board loads
-  useEffect(() => {
-    async function loadLeagueName() {
-      if (board?.draft?.leagueId) {
-        try {
-          const league = await api.getLeague(board.draft.leagueId);
-          setLeagueName(league.name);
-        } catch {
-          setLeagueName('');
-        }
-      }
-    }
-    loadLeagueName();
-  }, [board?.draft?.leagueId]);
-
   // Reset timer when pick changes
   useEffect(() => {
     if (board?.draft) {
@@ -186,9 +174,7 @@ export default function Draft() {
   
   const handleMakePick = () => {
     if (!selectedPlayer) return;
-    const teamId = currentPickerTeamId || board?.draft?.currentManagerId;
-    if (!teamId) return;
-    makePick(teamId, selectedPlayer.id);
+    makePick('', selectedPlayer.id);
     setSelectedPlayer(null);
   };
   
@@ -303,7 +289,7 @@ export default function Draft() {
     );
   }
   
-  const { draft, picks } = board;
+  const { draft, picks: serverPicks } = board;
   
   return (
     <div className="min-h-screen">
@@ -321,7 +307,7 @@ export default function Draft() {
           {/* Center: League + Season Branding */}
           <div className="text-center">
             <h1 className="text-base font-bold text-sand-500 leading-tight">
-              🍺 {leagueName}{leagueName ? ' – ' : ''}{selectedSeasonId ? (seasons.find(s => s.id === selectedSeasonId)?.name || 'Season') : board?.draft?.seasonId ? 'Draft' : ''}
+              🍺 {selectedSeasonId ? (seasons.find(s => s.id === selectedSeasonId)?.name || 'Draft') : 'Live Draft'}
             </h1>
           </div>
 
@@ -367,7 +353,7 @@ export default function Draft() {
             )}
 
             {/* Undo Button */}
-            {draft.status !== 'completed' && picks.length > 0 && (
+            {draft.status !== 'completed' && localPicks.length + serverPicks.length > 0 && (
               <button
                 onClick={() => undoPick()}
                 disabled={loading || !perms.canUndoPick}
@@ -423,7 +409,7 @@ export default function Draft() {
           <h3 className="font-semibold mb-4">📋 Picks Made</h3>
           
           <div className="space-y-1">
-            {picks.map((pick) => (
+            {[...serverPicks, ...localPicks].map((pick) => (
               <div
                 key={`${pick.round}-${pick.pick}`}
                 className={`flex items-center justify-between py-2 px-3 rounded ${
@@ -441,7 +427,7 @@ export default function Draft() {
                   {pick.playerId ? (
                     <div className="flex items-center gap-2">
                       {/* Small avatar for drafted player */}
-                      <div className="w-8 h-8 rounded-full overflow-hidden bg-ocean-700 flex-shrink-0">
+                      <div className="w-20 h-20 rounded-full overflow-hidden bg-ocean-700 flex-shrink-0">
                         {pick.playerImage ? (
                           <img
                             src={pick.playerImage}
@@ -478,55 +464,6 @@ export default function Draft() {
               <span className="text-sm text-sand-500">
                 {availablePlayers.length} available
               </span>
-
-              {/* Team Filter Dropdown */}
-              <div className="relative">
-                <button
-                  onClick={() => setPickerDropdownOpen(!pickerDropdownOpen)}
-                  className="bg-ocean-700 border border-ocean-600 rounded px-2 py-1 text-sm flex items-center gap-2 cursor-pointer min-w-[140px]"
-                >
-                  <span className="flex-1 text-left truncate">
-                    {currentPickerTeamId
-                      ? `${seasonTeams.find(t => t.teamId === currentPickerTeamId)?.teamName ?? ''}`
-                      : 'Drafting Team'}
-                  </span>
-                  <span className="text-sand-500 text-xs">▼</span>
-                </button>
-                {pickerDropdownOpen && (
-                  <div className="absolute top-full left-0 mt-1 bg-ocean-700 border border-ocean-600 rounded shadow-lg z-50 min-w-[180px] overflow-y-auto max-h-60">
-                    <button
-                      onClick={() => { setCurrentPickerTeamId(''); setPickerDropdownOpen(false); }}
-                      className={`w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-ocean-600 text-left ${
-                        currentPickerTeamId === '' ? 'bg-ocean-600 text-sand-500' : ''
-                      }`}
-                    >
-                      All Teams
-                    </button>
-                    {[...seasonTeams].sort((a, b) => (a.seed ?? 999) - (b.seed ?? 999)).map((team) => (
-                      <button
-                        key={team.teamId}
-                        onClick={() => { setCurrentPickerTeamId(team.teamId); setPickerDropdownOpen(false); }}
-                        className={`w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-ocean-600 text-left ${
-                          currentPickerTeamId === team.teamId ? 'bg-ocean-600 text-sand-500' : ''
-                        }`}
-                      >
-                        <div className="w-5 h-5 rounded-full overflow-hidden bg-ocean-500 flex-shrink-0">
-                          {team.avatarUrl ? (
-                            <img src={team.avatarUrl} alt="" className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-[8px]">👥</div>
-                          )}
-                        </div>
-                        <span>#{team.seed ?? '?'}</span>
-                        <span className="truncate">{team.teamName}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-                {pickerDropdownOpen && (
-                  <div className="fixed inset-0 z-40" onClick={() => setPickerDropdownOpen(false)} />
-                )}
-              </div>
             </div>
           </div>
           
@@ -577,7 +514,7 @@ export default function Draft() {
                 </div>
                 <div className="text-right flex-shrink-0 ml-2">
                   <p className="font-medium text-emerald-400">
-                    {player.projectedPoints?.toFixed(1) || '--'}
+                    {player.projected_points ? Number(player.projected_points).toFixed(1) : '--'}
                   </p>
                   <p className="text-xs text-sand-500">pts</p>
                 </div>
@@ -628,38 +565,24 @@ export default function Draft() {
                         </span>
                       </div>
                     </button>
-                    
-                    {/* Team's Picks - Shown when expanded */}
-                    {isSelected && (
-                      <div className="mt-1 ml-4 space-y-1">
-                        {teamPicks.length === 0 ? (
-                          <p className="text-sand-500 text-sm py-1">No picks yet</p>
-                        ) : (
-                          teamPicks.map((pick, i) => (
-                            <div
-                              key={pick.id}
-                              className="flex items-center gap-2 py-1 px-2 bg-gray-750 rounded text-sm"
-                            >
-                              <span className="text-sand-500 w-8">
-                                {pick.round}.{pick.pick}
-                              </span>
-                              <div className="w-5 h-5 rounded-full overflow-hidden bg-ocean-700 flex-shrink-0">
-                                {pick.playerImage ? (
-                                  <img 
-                                    src={pick.playerImage} 
-                                    alt={pick.playerName}
-                                    className="w-full h-full object-cover"
-                                  />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center text-xs">
-                                    🍺
-                                  </div>
-                                )}
-                              </div>
-                              <span className="truncate">{pick.playerName}</span>
+
+                    {/* Team Roster - Always visible below header */}
+                    {teamPicks.length === 0 ? (
+                      <p className="text-sand-500 text-xs pl-12 py-1">No picks yet</p>
+                    ) : (
+                      <div className="pl-10 pt-1 flex flex-wrap gap-3">
+                        {teamPicks.map((pick) => (
+                          <div key={pick.id} className="flex flex-col items-center gap-1">
+                            <div className="w-36 h-36 rounded-full overflow-hidden bg-ocean-700">
+                              {pick.playerImage ? (
+                                <img src={pick.playerImage} alt={pick.playerName} className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-lg">🍺</div>
+                              )}
                             </div>
-                          ))
-                        )}
+                            <span className="text-xs text-sand-500 text-center leading-tight">{pick.playerName}</span>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
@@ -719,7 +642,7 @@ export default function Draft() {
                     Rank: #{selectedPlayer.adp || 'N/A'}
                   </p>
                   <p className="text-sm text-sand-500">
-                    Projected: {selectedPlayer.projectedPoints?.toFixed(1) || '--'} pts
+                    Projected: {selectedPlayer.projected_points ? Number(selectedPlayer.projected_points).toFixed(1) : '--'} pts
                   </p>
                   {selectedPlayer.description && (
                     <p className="text-sm text-sand-400 mt-2 italic">
@@ -742,21 +665,107 @@ export default function Draft() {
                 >
                   Close
                 </button>
-                {board?.draft && board.draft.status === 'active' && (
+                {board?.draft && board.draft.status !== 'completed' && (
                   <button
                     onClick={() => {
-                      const teamId = currentPickerTeamId || board.draft.currentManagerId;
-                      if (!teamId) return;
-                      makePick(teamId, selectedPlayer.id);
+                      setPendingDraftPlayer(selectedPlayer);
                       setSelectedPlayer(null);
                     }}
                     disabled={loading}
                     className="px-4 py-2 rounded bg-green-600 hover:bg-green-500 disabled:opacity-50"
                   >
-                    {loading ? 'Drafting...' : 'Draft 🍺'}
+                    Draft
                   </button>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm Draft: Select Team Modal */}
+      {pendingDraftPlayer && (
+        <div
+          className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+          onClick={() => setPendingDraftPlayer(null)}
+        >
+          <div
+            className="bg-ocean-800 rounded-lg border border-ocean-700 max-w-md w-full overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-4 border-b border-ocean-700">
+              <h3 className="font-bold text-lg">🍺 Confirm Draft</h3>
+              <button
+                onClick={() => setPendingDraftPlayer(null)}
+                className="text-sand-500 hover:text-white text-xl"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-4">
+              {/* Player being drafted */}
+              <div className="flex items-center gap-3 mb-4 pb-4 border-b border-ocean-700">
+                <div className="w-16 h-16 rounded-full overflow-hidden bg-ocean-700 flex-shrink-0">
+                  {pendingDraftPlayer.profileImage ? (
+                    <img src={pendingDraftPlayer.profileImage} alt={pendingDraftPlayer.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-2xl">🍺</div>
+                  )}
+                </div>
+                <div>
+                  <p className="font-bold">{pendingDraftPlayer.name}</p>
+                  <p className="text-sm text-sand-500">{pendingDraftPlayer.team || 'Free Agent'}</p>
+                </div>
+              </div>
+              <p className="text-sm text-sand-500 mb-3">Select the team that drafted this player:</p>
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {[...seasonTeams].sort((a, b) => (a.seed ?? 999) - (b.seed ?? 999)).map((team) => (
+                  <button
+                    key={team.teamId}
+                    onClick={() => {
+                      // Optimistic update: add pick to local state immediately
+                      const round = board?.draft?.currentRound ?? 1;
+                      const pick = (board?.picks?.length ?? 0) + localPicks.length + 1;
+                      const newPick: DraftPick = {
+                        id: `temp-${Date.now()}`,
+                        draftId: board?.draft?.id ?? '',
+                        round,
+                        pick,
+                        teamId: team.teamId,
+                        playerId: pendingDraftPlayer.id,
+                        selectedAt: new Date().toISOString(),
+                        teamName: team.teamName,
+                        playerName: pendingDraftPlayer.name,
+                        playerImage: pendingDraftPlayer.profileImage ?? undefined,
+                      };
+                      setLocalPicks(prev => [...prev, newPick]);
+                      setPendingDraftPlayer(null);
+                      makePick(team.teamId, pendingDraftPlayer.id);
+                    }}
+                    disabled={loading}
+                    className="w-full flex items-center gap-3 p-3 bg-ocean-700 hover:bg-ocean-600 rounded text-left disabled:opacity-50"
+                  >
+                    <div className="w-10 h-10 rounded-full overflow-hidden bg-ocean-600 flex-shrink-0">
+                      {team.avatarUrl ? (
+                        <img src={team.avatarUrl} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-sm">👥</div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium">#{team.seed ?? '?'} {team.teamName}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 p-4 border-t border-ocean-700">
+              <button
+                onClick={() => setPendingDraftPlayer(null)}
+                className="px-4 py-2 rounded bg-ocean-700 hover:bg-ocean-600"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>
