@@ -31,6 +31,11 @@ export async function findSeasonById(id: string): Promise<Season | null> {
   return result.rows[0] ? mapSeason(result.rows[0]) : null;
 }
 
+export async function findLeagueById(leagueId: string): Promise<unknown | null> {
+  const result = await query('SELECT * FROM leagues WHERE id = $1', [leagueId]);
+  return result.rows[0] || null;
+}
+
 export async function findSeasonsByLeague(leagueId: string): Promise<Season[]> {
   const result = await query(
     'SELECT * FROM seasons WHERE league_id = $1 ORDER BY created_at DESC',

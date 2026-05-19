@@ -70,7 +70,7 @@ app.get('/api/teams/:id', authenticateToken, async (req: AuthRequest, res) => {
 });
 
 // Draft routes
-app.get('/api/drafts/:id/board', authenticateToken, async (req, res) => {
+app.get("/api/drafts/:id/board", optionalAuth, async (req, res) => {
   try {
     const board = await draftModel.getDraftBoard(req.params.id);
     res.json(board);
@@ -80,7 +80,7 @@ app.get('/api/drafts/:id/board', authenticateToken, async (req, res) => {
   }
 });
 
-app.post('/api/drafts/:id/pause', authenticateToken, async (req, res) => {
+app.post("/api/drafts/:id/pause", optionalAuth, async (req, res) => {
   try {
     const draft = await draftModel.pauseDraft(req.params.id);
     io.to(req.params.id).emit('draft:paused', { draft });
@@ -93,7 +93,54 @@ app.post('/api/drafts/:id/pause', authenticateToken, async (req, res) => {
   }
 });
 
-app.post('/api/drafts/:id/resume', authenticateToken, async (req, res) => {
+app.post("/api/drafts/:id/start", optionalAuth, async (req, res) => {
+  try {
+    // Get the draft to find its seasonId
+    const draft = await draftModel.findDraftById(req.params.id);
+    if (!draft) {
+      return res.status(404).json({ error: 'Draft not found' });
+    }
+    if (!draft.seasonId) {
+      return res.status(400).json({ error: 'Draft has no associated season' });
+    }
+
+    // Get league and season teams from the draft's season
+    const season = await seasonModel.findSeasonById(draft.seasonId);
+    if (!season) {
+      return res.status(404).json({ error: 'Season not found' });
+    }
+
+    const seasonTeams = await seasonModel.getSeasonTeams(draft.seasonId);
+    const teamIds = seasonTeams.map(st => st.teamId);
+
+    if (teamIds.length < 2) {
+      return res.status(400).json({ error: 'Need at least 2 teams to start a draft' });
+    }
+
+    const updatedDraft = await draftModel.startDraft(req.params.id, teamIds);
+    io.to(req.params.id).emit('draft:started', { draft: updatedDraft });
+    const board = await draftModel.getDraftBoard(req.params.id);
+    io.to(req.params.id).emit('draft:state', board);
+    res.json({ draft: updatedDraft });
+  } catch (error) {
+    console.error('Start draft error:', error);
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+// Make a pick via REST
+app.post("/api/drafts/:id/pick", optionalAuth, async (req, res) => {
+  try {
+    const { teamId, playerId } = req.body;
+    const { draft, pick } = await draftModel.makePick(req.params.id, teamId, playerId);
+    res.json({ draft, pick });
+  } catch (error) {
+    console.error('Make pick error:', error);
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
+app.post("/api/drafts/:id/resume", optionalAuth, async (req, res) => {
   try {
     const draft = await draftModel.resumeDraft(req.params.id);
     io.to(req.params.id).emit('draft:resumed', { draft });
@@ -107,7 +154,7 @@ app.post('/api/drafts/:id/resume', authenticateToken, async (req, res) => {
 });
 
 // Undo last pick
-app.post('/api/drafts/:id/undo', authenticateToken, async (req, res) => {
+app.post("/api/drafts/:id/undo", optionalAuth, async (req, res) => {
   try {
     const { draft, pick } = await draftModel.undoPick(req.params.id);
     io.to(req.params.id).emit('draft:undone', { draft, pick });
