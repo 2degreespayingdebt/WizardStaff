@@ -210,5 +210,28 @@ export function useDraftSocket({ draftId, enabled = true }: UseDraftSocketProps)
     undoPick,
     startDraft,
     initialized,
+    saveDraft: async (localPicks: Array<{ teamId: string; playerId: string; round: number; pick: number }>) => {
+      if (!draftId) return;
+      setLoading(true);
+      setError(null);
+      try {
+        const token = getToken();
+        await fetch(`/api/drafts/${draftId}/save`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ localPicks }),
+        });
+        const data = await fetchBoard();
+        setBoard(data);
+        setInitialized(true);
+      } catch (e) {
+        setError((e as Error).message);
+      } finally {
+        setLoading(false);
+      }
+    },
   };
 }
