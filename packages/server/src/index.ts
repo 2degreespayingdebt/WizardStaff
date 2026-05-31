@@ -184,6 +184,20 @@ app.post("/api/drafts/:id/undo", optionalAuth, async (req, res) => {
   }
 });
 
+// Reset draft — clear all picks and roster
+app.post("/api/drafts/:id/reset", optionalAuth, async (req, res) => {
+  try {
+    const draft = await draftModel.resetDraft(req.params.id);
+    io.to(req.params.id).emit('draft:reset', { draft });
+    const board = await draftModel.getDraftBoard(req.params.id);
+    io.to(req.params.id).emit('draft:state', board);
+    res.json({ draft });
+  } catch (error) {
+    console.error('Reset draft error:', error);
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
 // Get or create draft for a season
 app.post('/api/drafts/season/:seasonId', optionalAuth, async (req, res) => {
   try {

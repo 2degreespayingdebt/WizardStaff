@@ -131,10 +131,12 @@ export default function Draft() {
     }
   };
   
-  // Get picks for a specific team (merges server picks + local optimistics)
+  // Get picks for a specific team (filters both server picks + local optimistics by teamId)
   const getTeamPicks = (teamId: string) => {
     const serverPicks = board?.picks ?? [];
-    return [...serverPicks, ...localPicks.filter(lp => lp.teamId === teamId)];
+    const filteredServerPicks = serverPicks.filter(p => p.teamId === teamId);
+    const filteredLocalPicks = localPicks.filter(lp => lp.teamId === teamId);
+    return [...filteredServerPicks, ...filteredLocalPicks];
   };
   
   // Reset timer when pick changes
@@ -373,10 +375,31 @@ export default function Draft() {
               </button>
             )}
 
-            {/* Save Button */}
-            {(localPicks.length > 0 || serverPicks.length > 0) && (
-              <button
-                onClick={async () => {
+            {/* Reset Button */}
+            <button
+              onClick={async () => {
+                if (!draftIdFromUrl) return;
+                if (!confirm('Are you sure you want to reset the draft? All picks will be cleared.')) return;
+                try {
+                  await api.resetDraft(draftIdFromUrl);
+                  setLocalPicks([]);
+                  window.location.reload();
+                } catch (err) {
+                  console.error('Reset error:', err);
+                }
+              }}
+              disabled={loading || !perms.canUndoPick}
+              className="px-2 py-1 rounded text-xs bg-red-600 hover:bg-red-500 disabled:opacity-50"
+              title={!perms.canUndoPick ? 'Admin only' : ''}
+            >
+              🔄 Reset
+            </button>
+
+            {/* Save Button - Always visible to finalize draft to rosters */}
+            <button
+              onClick={async () => {
+                // Save local picks first
+                if (localPicks.length > 0) {
                   const toSave = localPicks.map(lp => ({
                     teamId: lp.teamId,
                     playerId: lp.playerId || '',
@@ -385,14 +408,16 @@ export default function Draft() {
                   }));
                   await saveDraft(toSave);
                   setLocalPicks([]);
-                }}
-                disabled={loading}
-                className="px-2 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50"
-                title="Save draft results to database"
-              >
-                💾 Save
-              </button>
-            )}
+                }
+                // Then reload to refresh the board
+                window.location.reload();
+              }}
+              disabled={loading}
+              className="px-2 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50"
+              title="Save all draft picks to team rosters"
+            >
+              💾 Save
+            </button>
 
             {/* Timer */}
             <div className={`font-mono text-lg ${timeLeft <= 10 ? 'text-red-500' : 'text-white'}`}>

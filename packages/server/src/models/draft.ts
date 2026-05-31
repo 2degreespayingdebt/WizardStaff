@@ -291,6 +291,40 @@ export async function saveDraftLocalPicks(
   const client = await getClient();
   try {
     await client.query('BEGIN');
+    
+    // Get all teams that have picks in this draft
+    const teamsResult = await client.query(
+      `SELECT DISTINCT team_id FROM draft_picks WHERE draft_id = $1`,
+      [draftId]
+    );
+    
+    // Clear existing roster slots for all teams in this draft
+    for (const row of teamsResult.rows) {
+      await client.query(
+        `DELETE FROM roster_slots WHERE team_id = $1`,
+        [row.team_id]
+      );
+    }
+    
+    // Get all picks for this draft (both existing and new)
+    const allPicksResult = await client.query(
+      `SELECT team_id, player_id FROM draft_picks WHERE draft_id = $1 AND player_id IS NOT NULL`,
+      [draftId]
+    );
+    
+    // Re-populate roster slots from all picks in the draft
+    for (const pick of allPicksResult.rows) {
+      if (pick.player_id) {
+        await client.query(
+          `INSERT INTO roster_slots (team_id, player_id, slot_type, position)
+           VALUES ($1, $2, 'starter', 'drinker')
+           ON CONFLICT DO NOTHING`,
+          [pick.team_id, pick.player_id]
+        );
+      }
+    }
+    
+    // Now handle any new local picks that haven't been saved yet
     for (const lp of localPicks) {
       if (lp.playerId.startsWith('temp-')) continue; // skip temp IDs
       // Check if already exists
@@ -304,7 +338,7 @@ export async function saveDraftLocalPicks(
            VALUES ($1, $2, $3, $4, $5, NOW())`,
           [draftId, lp.round, lp.pick, lp.teamId, lp.playerId]
         );
-        // Add player to team's roster
+        // Add player to team's roster (already cleared above, so this adds it)
         await client.query(
           `INSERT INTO roster_slots (team_id, player_id, slot_type, position)
            VALUES ($1, $2, 'starter', 'drinker')
@@ -369,6 +403,11 @@ export async function getDraftBoard(draftId: string): Promise<{
     draft,
     picks: picksResult.rows.map((row) => ({
       ...row,
+      id: row.id,
+      draftId: row.draft_id,
+      teamId: row.team_id,
+      playerId: row.player_id,
+      selectedAt: row.selected_at,
       teamName: row.team_name,
       playerName: row.player_name,
       playerPosition: row.player_position,
@@ -406,4 +445,56 @@ function mapDraft(row: unknown): Draft {
     completedAt: r.completed_at,
     createdAt: r.created_at,
   };
+}
+export async function resetDraft(draftId: string): Promise<Draft> {
+  const client = await getClient();
+  try {
+    await client.query('BEGIN');
+    
+    const draft = await findDraftById(draftId);
+    if (!draft) throw new Error('Draft not found');
+    
+    // Get all teams in this draft
+    const teamsResult = await client.query(
+      `SELECT DISTINCT team_id FROM draft_picks WHERE draft_id = $1`,
+      [draftId]
+    );
+    
+    // Delete all picks for this draft
+    await client.query(
+      `DELETE FROM draft_picks WHERE draft_id = $1`,
+      [draftId]
+    );
+    
+    // Remove all players from team rosters
+    for (const row of teamsResult.rows) {
+      await client.query(
+        `DELETE FROM roster_slots WHERE team_id = $1`,
+        [row.team_id]
+      );
+    }
+    
+    // Reset draft state
+    await client.query(
+      `UPDATE drafts SET 
+        status = 'scheduled',
+        current_pick = 1,
+        current_round = 1,
+        started_at = NULL,
+        completed_at = NULL,
+        paused_at = NULL
+      WHERE id = $1`,
+      [draftId]
+    );
+    
+    await client.query('COMMIT');
+    
+    // Return updated draft
+    return (await findDraftById(draftId))!;
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
 }

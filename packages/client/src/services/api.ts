@@ -374,6 +374,13 @@ class ApiService {
     });
   }
 
+  // Reset draft — clear all picks and rosters
+  async resetDraft(draftId: string): Promise<{ draft: any }> {
+    return this.request<{ draft: any }>(`/drafts/${draftId}/reset`, {
+      method: 'POST',
+    });
+  }
+
   // Get draft ID for a season (creates if not exists)
   async getOrCreateDraft(seasonId: string): Promise<{ draftId: string }> {
     return this.request<{ draftId: string }>(`/drafts/season/${seasonId}`, {
