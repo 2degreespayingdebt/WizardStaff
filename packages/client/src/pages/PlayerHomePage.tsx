@@ -325,7 +325,7 @@ export default function PlayerHomePage() {
               <div className="p-3 bg-ocean-800">
                 <span className="text-sand-500 text-sm">Team Rosters (Sorted by Points)</span>
               </div>
-              <div className="max-h-64 overflow-y-auto">
+              <div className="flex-1">
                 {rosterLoading ? (
                   <p className="text-sand-500 text-center py-4">Loading...</p>
                 ) : teamRosters.length === 0 ? (
@@ -342,7 +342,13 @@ export default function PlayerHomePage() {
                         onClick={() => toggleTeamExpand(team.teamName)}
                         className="w-full p-3 flex items-center justify-between hover:bg-ocean-800"
                       >
-                        <span className="font-medium">{team.teamName}
+                        <div className="flex items-center gap-2">
+                          {team.players[0]?.avatarUrl ? (
+                            <img src={'http://localhost:3001' + team.players[0].avatarUrl} alt="" className="w-6 h-6 rounded-full object-cover" />
+                          ) : (
+                            <div className="w-6 h-6 rounded-full bg-ocean-700 flex items-center justify-center text-xs">👥</div>
+                          )}
+                          <span className="font-medium">{team.teamName}
                           {(() => {
                             const aTotal = team.players.reduce((sum, p) => sum + p.points, 0);
                             const maxTotal = Math.max(...teamRosters.map(t => t.players.reduce((s, p) => s + p.points, 0)), 0);
