@@ -65,8 +65,8 @@ export default function PlayerHomePage() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#023E8A' }}>
-      {/* Header - Single line, max height 100px */}
-      <header className="bg-ocean-800 border-b border-ocean-700 h-[100px] flex items-center">
+      {/* Header - Single line, max height 60px */}
+      <header className="bg-ocean-800 border-b border-ocean-700 h-[60px] flex items-center">
         <div className="max-w-md mx-auto px-3 w-full flex items-center justify-between">
           {/* Left: Season Name */}
           <span className="text-xl font-bold" style={{ color: '#D4A574' }}>
