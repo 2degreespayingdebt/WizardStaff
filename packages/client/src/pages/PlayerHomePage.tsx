@@ -352,7 +352,7 @@ export default function PlayerHomePage() {
                                 <div className="w-10 h-10 rounded-full bg-ocean-700 flex items-center justify-center mb-1">🏈</div>
                               )}
                               <span className="text-xs text-center">{player.playerName}</span>
-                              <span className="text-xs text-sand-500">- {player.points}</span>
+                              <span className="text-xs text-sand-500"> {player.points}</span>
                             </div>
                           ))}
                         </div>
