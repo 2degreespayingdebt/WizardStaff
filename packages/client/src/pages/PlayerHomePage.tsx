@@ -70,9 +70,20 @@ export default function PlayerHomePage() {
               localStorage.removeItem('wizardstaff_token');
               window.location.href = '/login';
             }} 
-            className="btn-secondary text-xs"
+            className="flex items-center gap-2"
           >
-            Logout
+            {player?.profileImage || player?.profile_image ? (
+              <img
+                src={'http://localhost:3001' + (player.profileImage || player.profile_image)}
+                alt={player?.name}
+                className="w-10 h-10 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-ocean-700 flex items-center justify-center">
+                🏈
+              </div>
+            )}
+            <span className="btn-secondary text-xs">Logout</span>
           </button>
         </div>
       </header>
