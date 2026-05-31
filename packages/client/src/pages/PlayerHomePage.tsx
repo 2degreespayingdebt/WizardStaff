@@ -153,7 +153,7 @@ export default function PlayerHomePage() {
           <button onClick={() => { loadAllPlayers(); setShowPlayersModal(true); }} className="text-sand-500 hover:text-white text-xs sm:text-sm absolute left-1/2 transform -translate-x-1/2">
             Players
           </button>
-          <div className="relative absolute right-1">
+          <div className="absolute right-1">
             <button onClick={() => setShowDropdown(!showDropdown)} className="flex items-center">
               {player?.profileImage || player?.profile_image ? (
                 <img src={'http://localhost:3001' + (player.profileImage || player.profile_image)} alt={player?.name} className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover" />
