@@ -373,3 +373,37 @@ app.get("/api/player-team", optionalAuth, async (req, res) => {
     res.status(500).json({ error: (error as Error).message });
   }
 });
+
+// Get leaderboard - sum of points per team for a season
+app.get("/api/leaderboard", optionalAuth, async (req, res) => {
+  try {
+    const leagueId = req.query.league_id as string;
+    const seasonId = req.query.season_id as string;
+    
+    if (!leagueId || !seasonId) {
+      return res.status(400).json({ error: 'Missing league_id or season_id' });
+    }
+    
+    // Get all teams in the league with their total points
+    const result = await query(
+      `SELECT 
+        t.name as team_name,
+        COALESCE(SUM(pp.points), 0) as total_points
+       FROM teams t
+       LEFT JOIN roster_slots rs ON rs.team_id = t.id
+       LEFT JOIN player_points pp ON pp.player_id = rs.player_id AND pp.league_id = t.league_id AND pp.season_id = $2
+       WHERE t.league_id = $1
+       GROUP BY t.id, t.name
+       ORDER BY total_points DESC`,
+      [leagueId, seasonId]
+    );
+    
+    res.json(result.rows.map(row => ({
+      teamName: row.team_name,
+      totalPoints: parseInt(row.total_points) || 0
+    })));
+  } catch (error) {
+    console.error('Get leaderboard error:', error);
+    res.status(500).json({ error: (error as Error).message });
+  }
+});

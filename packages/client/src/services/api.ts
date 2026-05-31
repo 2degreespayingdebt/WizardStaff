@@ -416,6 +416,15 @@ class ApiService {
     });
     return this.request<{ teamName: string | null; teamId: string | null }>(`/player-team?${params}`);
   }
+
+  // Get leaderboard data
+  async getLeaderboard(leagueId: string, seasonId: string): Promise<{ teamName: string; totalPoints: number }[]> {
+    const params = new URLSearchParams({
+      league_id: leagueId,
+      season_id: seasonId,
+    });
+    return this.request<{ teamName: string; totalPoints: number }[]>(`/leaderboard?${params}`);
+  }
 }
 
 export const api = new ApiService();

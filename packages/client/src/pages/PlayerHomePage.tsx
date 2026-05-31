@@ -17,6 +17,9 @@ export default function PlayerHomePage() {
   const [showPlayersModal, setShowPlayersModal] = useState(false);
   const [selectedPlayerInModal, setSelectedPlayerInModal] = useState<Player | null>(null);
   const [selectedPlayerTeam, setSelectedPlayerTeam] = useState<string | null>(null);
+  const [showLeaderboardModal, setShowLeaderboardModal] = useState(false);
+  const [leaderboardData, setLeaderboardData] = useState<{ teamName: string; totalPoints: number }[]>([]);
+  const [leaderboardLoading, setLeaderboardLoading] = useState(false);
   const [allPlayers, setAllPlayers] = useState<Player[]>([]);
   const [playersLoading, setPlayersLoading] = useState(false);
   const [authorized, setAuthorized] = useState(false);
@@ -97,6 +100,19 @@ export default function PlayerHomePage() {
     }
   };
 
+  const loadLeaderboard = async () => {
+    if (!leagueId || !seasonId) return;
+    setLeaderboardLoading(true);
+    try {
+      const data = await api.getLeaderboard(leagueId, seasonId);
+      setLeaderboardData(data);
+    } catch (error) {
+      console.error('Failed to load leaderboard:', error);
+    } finally {
+      setLeaderboardLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#023E8A' }}>
@@ -114,7 +130,7 @@ export default function PlayerHomePage() {
             {seasonName || 'Season'}
           </span>
           <div className="flex items-center gap-4 self-center">
-            <button onClick={() => alert('Leaderboard')} className="text-sand-500 hover:text-white text-sm">
+            <button onClick={() => { loadLeaderboard(); setShowLeaderboardModal(true); }} className="text-sand-500 hover:text-white text-sm">
               Leaderboard
             </button>
             <button onClick={() => { loadAllPlayers(); setShowPlayersModal(true); }} className="text-sand-500 hover:text-white text-sm">
@@ -232,6 +248,55 @@ export default function PlayerHomePage() {
                   <p className="text-sand-500 mt-4 text-center">{selectedPlayerInModal.description}</p>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Leaderboard Modal */}
+      {showLeaderboardModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-ocean-900 rounded-lg w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b border-ocean-700">
+              <h2 className="text-lg font-bold">{seasonName || 'Leaderboard'}</h2>
+              <button onClick={() => setShowLeaderboardModal(false)} className="text-sand-500 hover:text-white text-xl font-bold w-8 h-8 flex items-center justify-center">
+                ✕
+              </button>
+            </div>
+            <div className="p-4 flex items-center justify-between border-b border-ocean-700">
+              <span className="text-sand-500 text-sm">Bar Graph (Team Points)</span>
+              <button onClick={loadLeaderboard} className="text-sand-500 hover:text-white text-sm">
+                🔄 Refresh
+              </button>
+            </div>
+            <div className="p-4 overflow-y-auto flex-1">
+              {leaderboardLoading ? (
+                <p className="text-sand-500 text-center py-8">Loading...</p>
+              ) : leaderboardData.length === 0 ? (
+                <p className="text-sand-500 text-center py-8">No data found.</p>
+              ) : (
+                <div className="flex items-end justify-around h-48 gap-2">
+                  {leaderboardData.map((team, idx) => {
+                    const maxPoints = Math.max(...leaderboardData.map(d => d.totalPoints), 1);
+                    const barHeight = Math.max((team.totalPoints / maxPoints) * 100, 5);
+                    return (
+                      <div key={idx} className="flex flex-col items-center flex-1">
+                        <span className="text-xs text-sand-500 mb-1">{team.totalPoints}</span>
+                        <div 
+                          className="w-full rounded-t" 
+                          style={{ 
+                            height: `${barHeight}%`, 
+                            backgroundColor: '#D4A574',
+                            minHeight: '4px',
+                            maxWidth: '40px'
+                          }}
+                        />
+                        <span className="text-xs mt-1 truncate w-16 text-center">{team.teamName}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </div>
