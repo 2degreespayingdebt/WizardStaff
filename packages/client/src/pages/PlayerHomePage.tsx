@@ -249,7 +249,7 @@ export default function PlayerHomePage() {
       {/* Player Detail Modal */}
       {selectedPlayerInModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-2">
-          <div className="bg-ocean-900 rounded-lg w-full max-w-md h-[90vh] flex flex-col">
+          <div className="bg-ocean-900 rounded-lg w-full max-w-md h-[80vh] flex flex-col">
             <div className="flex items-center justify-between p-1.5 border-b border-ocean-700">
               <h2 className="text-lg font-bold">{selectedPlayerInModal.name}</h2>
               <button onClick={() => setSelectedPlayerInModal(null)} className="text-sand-500 hover:text-white text-xl font-bold w-8 h-8 flex items-center justify-center">
