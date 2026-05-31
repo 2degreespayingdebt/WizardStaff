@@ -272,7 +272,7 @@ export default function PlayerHomePage() {
                   </div>
                 </div>
                 {selectedPlayerInModal.description && (
-                  <p className="text-sand-500 mt-4 text-center">{selectedPlayerInModal.description}</p>
+                  <p className="text-sand-500 mt-4 text-center italic">{selectedPlayerInModal.description}</p>
                 )}
               </div>
             </div>
