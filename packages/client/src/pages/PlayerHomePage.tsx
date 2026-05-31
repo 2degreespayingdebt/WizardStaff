@@ -12,6 +12,19 @@ export default function PlayerHomePage() {
   const [player, setPlayer] = useState<Player | null>(null);
   const [count, setCount] = useState(0);
   const [showDropdown, setShowDropdown] = useState(false);
+  
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (showDropdown && !target.closest('.relative')) {
+        setShowDropdown(false);
+      }
+    };
+    
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [showDropdown]);
 
   const handleLogout = () => {
     localStorage.removeItem('wizardstaff_role');
