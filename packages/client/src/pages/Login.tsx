@@ -1,20 +1,19 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../services/api';
 
-type UserRole = 'admin' | 'teamLead';
+type UserRole = 'admin' | 'teamLead' | 'player';
 
 const ADMIN_PASSWORD = 'ZIMMER';
-const TEAM_LEAD_PASSWORD = 'Surfside';
+const PLAYER_PASSWORD = 'DUFFY';
 
 export default function Login() {
   const navigate = useNavigate();
   const [adminPassword, setAdminPassword] = useState('');
-  const [teamLeadPassword, setTeamLeadPassword] = useState('');
+  const [playerPassword, setPlayerPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (role: UserRole) => {
+  const handleLogin = async (role: UserRole, redirectPath: string) => {
     setError(null);
     setLoading(true);
 
@@ -23,8 +22,8 @@ export default function Login() {
       localStorage.setItem('wizardstaff_role', role);
       localStorage.setItem('wizardstaff_auth', 'true');
       
-      // Navigate to dashboard
-      navigate('/');
+      // Navigate to the appropriate page
+      navigate(redirectPath);
     } catch (err) {
       setError('Login failed. Please try again.');
     } finally {
@@ -36,21 +35,25 @@ export default function Login() {
     e.preventDefault();
     
     if (adminPassword === ADMIN_PASSWORD) {
-      handleLogin('admin');
+      handleLogin('admin', '/');
     } else {
       setError('Invalid admin password. Please try again.');
       setAdminPassword('');
     }
   };
 
-  const handleTeamLeadSubmit = (e: React.FormEvent) => {
+  const handleTeamLeadClick = () => {
+    handleLogin('teamLead', '/');
+  };
+
+  const handlePlayerSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (teamLeadPassword === TEAM_LEAD_PASSWORD) {
-      handleLogin('teamLead');
+    if (playerPassword === PLAYER_PASSWORD) {
+      handleLogin('player', '/select-player');
     } else {
-      setError('Invalid team lead password. Please try again.');
-      setTeamLeadPassword('');
+      setError('Invalid player password. Please try again.');
+      setPlayerPassword('');
     }
   };
 
@@ -97,7 +100,7 @@ export default function Login() {
             </form>
           </div>
 
-          {/* Team Lead Login */}
+          {/* Team Lead Login - No password needed */}
           <div className="card">
             <div className="text-center mb-4">
               <div className="text-3xl md:text-4xl mb-2">🏄</div>
@@ -105,21 +108,39 @@ export default function Login() {
               <p className="text-sm text-sand-500">Limited access for team management</p>
             </div>
             
-            <form onSubmit={handleTeamLeadSubmit} className="space-y-3">
+            <button
+              onClick={handleTeamLeadClick}
+              disabled={loading}
+              className="w-full btn-primary"
+              style={{ backgroundColor: '#00B4D8', color: '#023E8A' }}
+            >
+              {loading ? 'Logging in...' : 'Enter as Team Lead'}
+            </button>
+          </div>
+
+          {/* Player Login */}
+          <div className="card">
+            <div className="text-center mb-4">
+              <div className="text-3xl md:text-4xl mb-2">🍺</div>
+              <h3 className="text-lg md:text-xl font-semibold text-white">Player</h3>
+              <p className="text-sm text-sand-500">View only access for the draft</p>
+            </div>
+            
+            <form onSubmit={handlePlayerSubmit} className="space-y-3">
               <input
                 type="password"
-                value={teamLeadPassword}
-                onChange={(e) => setTeamLeadPassword(e.target.value)}
-                placeholder="Enter team lead password"
+                value={playerPassword}
+                onChange={(e) => setPlayerPassword(e.target.value)}
+                placeholder="Enter player password"
                 className="w-full"
               />
               <button
                 type="submit"
                 disabled={loading}
                 className="w-full btn-primary"
-                style={{ backgroundColor: '#00B4D8', color: '#023E8A' }}
+                style={{ backgroundColor: '#90E0EF', color: '#023E8A' }}
               >
-                {loading ? 'Logging in...' : 'Login as Team Lead'}
+                {loading ? 'Logging in...' : 'Login as Player'}
               </button>
             </form>
           </div>

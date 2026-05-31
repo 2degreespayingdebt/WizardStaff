@@ -196,11 +196,13 @@ class ApiService {
     position?: string;
     team?: string;
     limit?: number;
+    includeImage?: boolean;
   }): Promise<Player[]> {
     const params = new URLSearchParams();
     if (options?.position) params.set('position', options.position);
     if (options?.team) params.set('team', options.team);
     if (options?.limit) params.set('limit', String(options.limit));
+    if (options?.includeImage) params.set('includeImage', 'true');
     const query = params.toString();
     return this.request<Player[]>(`/players${query ? `?${query}` : ''}`);
   }

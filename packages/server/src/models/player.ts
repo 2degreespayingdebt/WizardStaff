@@ -11,6 +11,7 @@ export interface Player {
   profileImage: string | null;
   description: string | null;
   createdAt: Date;
+  imageData?: string; // Base64 encoded image
 }
 
 export async function findAllPlayers(options?: {
@@ -18,6 +19,7 @@ export async function findAllPlayers(options?: {
   status?: string;
   limit?: number;
   offset?: number;
+  includeImage?: boolean;
 }): Promise<Player[]> {
   let sql = 'SELECT * FROM players WHERE 1=1';
   const params: unknown[] = [];
@@ -46,6 +48,16 @@ export async function findAllPlayers(options?: {
   }
 
   const result = await query(sql, params);
+  
+  // Add base64 image data to each player if requested
+  if (options?.includeImage) {
+    for (const player of result.rows) {
+      if (player.image_data) {
+        player.image_data = Buffer.from(player.image_data).toString('base64');
+      }
+    }
+  }
+  
   return result.rows;
 }
 

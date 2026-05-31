@@ -30,13 +30,14 @@ router.use(optionalAuth);
 // Get all players
 router.get('/', async (req: AuthRequest, res: Response) => {
   try {
-    const { team, status, limit, offset } = req.query;
+    const { team, status, limit, offset, includeImage } = req.query;
     
     const players = await playerModel.findAllPlayers({
       team: team as string,
       status: status as string,
       limit: limit ? parseInt(limit as string) : undefined,
       offset: offset ? parseInt(offset as string) : undefined,
+      includeImage: includeImage === 'true',
     });
     
     res.json(players);

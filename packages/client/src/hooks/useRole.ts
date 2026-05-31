@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-type UserRole = 'admin' | 'teamLead' | null;
+type UserRole = 'admin' | 'teamLead' | 'player' | null;
 
 export function useRole() {
   const [role, setRole] = useState<UserRole>(null);
@@ -35,6 +35,7 @@ export function useRole() {
 
   const isAdmin = role === 'admin';
   const isTeamLead = role === 'teamLead';
+  const isPlayer = role === 'player';
 
   return {
     role,
@@ -44,5 +45,6 @@ export function useRole() {
     logout,
     isAdmin,
     isTeamLead,
+    isPlayer,
   };
 }

@@ -22,7 +22,8 @@ export default function PlayerList() {
 
   const loadPlayers = async () => {
     try {
-      const data = await api.getPlayers();
+      // Get players with images from database
+      const data = await api.getPlayers({ includeImage: true });
       // Sort alphabetically by name
       const sorted = [...data].sort((a, b) => a.name.localeCompare(b.name));
       setPlayers(sorted);
@@ -129,15 +130,22 @@ export default function PlayerList() {
               >
                 {/* Avatar - centered, 20% larger (60 -> 72) */}
                 <div className="mb-2">
-                  {player.profile_image ? (
+                  {player.imageData ? (
+                    <img
+                      src={`data:image/png;base64,${player.imageData}`}
+                      alt={player.name}
+                      className="w-20 h-20 rounded-full object-cover cursor-pointer hover:opacity-80"
+                      onClick={() => handleImageClick(`data:image/png;base64,${player.imageData}`)}
+                    />
+                  ) : player.profile_image ? (
                     <img
                       src={player.profile_image}
                       alt={player.name}
-                      className="w-72 h-72 rounded-full object-cover cursor-pointer hover:opacity-80"
+                      className="w-20 h-20 rounded-full object-cover cursor-pointer hover:opacity-80"
                       onClick={() => handleImageClick(player.profile_image!)}
                     />
                   ) : (
-                    <div className="w-72 h-72 rounded-full bg-ocean-700 flex items-center justify-center text-5xl">
+                    <div className="w-20 h-20 rounded-full bg-ocean-700 flex items-center justify-center text-2xl">
                       🍺
                     </div>
                   )}
