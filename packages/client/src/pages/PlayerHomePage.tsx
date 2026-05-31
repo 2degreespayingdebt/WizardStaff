@@ -11,8 +11,16 @@ export default function PlayerHomePage() {
   const seasonName = searchParams.get('season') || '';
   const [player, setPlayer] = useState<Player | null>(null);
   const [count, setCount] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  const handleLogout = () => {
+    localStorage.removeItem('wizardstaff_role');
+    localStorage.removeItem('wizardstaff_auth');
+    localStorage.removeItem('wizardstaff_token');
+    window.location.href = '/login';
+  };
   const [authorized, setAuthorized] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (playerId && password) {
@@ -57,34 +65,49 @@ export default function PlayerHomePage() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#023E8A' }}>
-      {/* Header */}
-      <header className="bg-ocean-800 border-b border-ocean-700">
-        <div className="max-w-md mx-auto px-3 py-3 flex items-center justify-between">
-          <h1 className="text-base font-bold" style={{ color: '#D4A574' }}>
+      {/* Header - Single line, max height 100px */}
+      <header className="bg-ocean-800 border-b border-ocean-700 h-[100px] flex items-center">
+        <div className="max-w-md mx-auto px-3 w-full flex items-center justify-between">
+          {/* Left: Season Name */}
+          <span className="text-base font-bold" style={{ color: '#D4A574' }}>
             {seasonName ? `🍺 ${seasonName}` : '🍺 WizardStaff'}
-          </h1>
-          <button 
-            onClick={() => {
-              localStorage.removeItem('wizardstaff_role');
-              localStorage.removeItem('wizardstaff_auth');
-              localStorage.removeItem('wizardstaff_token');
-              window.location.href = '/login';
-            }} 
-            className="flex items-center gap-2"
-          >
-            {player?.profileImage || player?.profile_image ? (
-              <img
-                src={'http://localhost:3001' + (player.profileImage || player.profile_image)}
-                alt={player?.name}
-                className="w-10 h-10 rounded-full object-cover"
-              />
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-ocean-700 flex items-center justify-center">
-                🏈
+          </span>
+          
+          {/* Right: Avatar with Dropdown */}
+          <div className="relative">
+            <button 
+              onClick={() => setShowDropdown(!showDropdown)}
+              className="flex items-center gap-2"
+            >
+              {player?.profileImage || player?.profile_image ? (
+                <img
+                  src={'http://localhost:3001' + (player.profileImage || player.profile_image)}
+                  alt={player?.name}
+                  className="w-10 h-10 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-ocean-700 flex items-center justify-center">
+                  🏈
+                </div>
+              )}
+            </button>
+            
+            {/* Dropdown Menu */}
+            {showDropdown && (
+              <div className="absolute right-0 mt-2 w-48 bg-ocean-800 border border-ocean-700 rounded-lg shadow-lg z-50">
+                <div className="px-4 py-2 border-b border-ocean-700">
+                  <span className="text-sand-500 text-sm">Signed in as:</span>
+                  <p className="font-bold">{player?.name || 'Unknown'}</p>
+                </div>
+                <button 
+                  onClick={handleLogout}
+                  className="w-full text-left px-4 py-2 hover:bg-ocean-700 text-sand-500"
+                >
+                  Logout
+                </button>
               </div>
             )}
-            <span className="btn-secondary text-xs">Logout</span>
-          </button>
+          </div>
         </div>
       </header>
 
