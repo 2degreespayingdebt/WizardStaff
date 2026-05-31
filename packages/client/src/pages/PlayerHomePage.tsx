@@ -147,9 +147,6 @@ export default function PlayerHomePage() {
       {/* Header */}
       <header className="bg-ocean-800 border-b border-ocean-700 h-[60px]">
         <div className="max-w-md mx-auto px-3 w-full h-full flex items-center justify-between">
-          <span className="text-sm font-bold self-center" style={{ color: '#D4A574' }}>
-            {seasonName || 'Season'}
-          </span>
           <div className="flex items-center gap-4 self-center">
             <button onClick={() => { loadLeaderboard(); setShowLeaderboardModal(true); }} className="text-sand-500 hover:text-white text-sm">
               Leaderboard
@@ -168,6 +165,10 @@ export default function PlayerHomePage() {
             </button>
             {showDropdown && (
               <div className="absolute right-0 mt-2 w-48 bg-ocean-800 border border-ocean-700 rounded-lg shadow-lg z-50">
+                <div className="px-4 py-2 border-b border-ocean-700">
+                  <span className="text-sand-500 text-sm">Season:</span>
+                  <p className="font-bold">{seasonName || 'Unknown'}</p>
+                </div>
                 <div className="px-4 py-2 border-b border-ocean-700">
                   <span className="text-sand-500 text-sm">Signed in as:</span>
                   <p className="font-bold">{player?.name || 'Unknown'}</p>
