@@ -207,7 +207,7 @@ export default function PlayerHomePage() {
       {showPlayersModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <div className="bg-ocean-900 rounded-lg w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between p-4 border-b border-ocean-700">
+            <div className="flex items-center justify-between p-1.5 border-b border-ocean-700">
               <h2 className="text-lg font-bold">Players</h2>
               <button onClick={() => setShowPlayersModal(false)} className="text-sand-500 hover:text-white text-xl font-bold w-8 h-8 flex items-center justify-center">
                 ✕
@@ -250,7 +250,7 @@ export default function PlayerHomePage() {
       {selectedPlayerInModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <div className="bg-ocean-900 rounded-lg w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between p-4 border-b border-ocean-700">
+            <div className="flex items-center justify-between p-1.5 border-b border-ocean-700">
               <h2 className="text-lg font-bold">{selectedPlayerInModal.name}</h2>
               <button onClick={() => setSelectedPlayerInModal(null)} className="text-sand-500 hover:text-white text-xl font-bold w-8 h-8 flex items-center justify-center">
                 ✕
@@ -278,7 +278,7 @@ export default function PlayerHomePage() {
       {showLeaderboardModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <div className="bg-ocean-900 rounded-lg w-full max-w-md max-h-[80vh] overflow-y-auto flex flex-col">
-            <div className="flex items-center justify-between p-4 border-b border-ocean-700">
+            <div className="flex items-center justify-between p-1.5 border-b border-ocean-700">
               <h2 className="text-lg font-bold">{seasonName || 'Leaderboard'}</h2>
               <button onClick={() => setShowLeaderboardModal(false)} className="text-sand-500 hover:text-white text-xl font-bold w-8 h-8 flex items-center justify-center">
                 ✕

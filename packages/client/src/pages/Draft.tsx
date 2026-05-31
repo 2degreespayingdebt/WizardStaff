@@ -664,7 +664,7 @@ export default function Draft() {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-4 border-b border-ocean-700">
+            <div className="flex items-center justify-between p-1.5 border-b border-ocean-700">
               <h3 className="font-bold text-xl">🍺 Drinker Details</h3>
               <button
                 onClick={() => setSelectedPlayer(null)}
@@ -750,7 +750,7 @@ export default function Draft() {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-4 border-b border-ocean-700">
+            <div className="flex items-center justify-between p-1.5 border-b border-ocean-700">
               <h3 className="font-bold text-lg">🍺 Drafted Drinker</h3>
               <button
                 onClick={() => setViewingPick(null)}
@@ -814,7 +814,7 @@ export default function Draft() {
             className="bg-ocean-800 rounded-lg border border-ocean-700 max-w-md w-full overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between p-4 border-b border-ocean-700">
+            <div className="flex items-center justify-between p-1.5 border-b border-ocean-700">
               <h3 className="font-bold text-lg">🍺 Confirm Draft</h3>
               <button
                 onClick={() => setPendingDraftPlayer(null)}
