@@ -146,21 +146,19 @@ export default function PlayerHomePage() {
     <div className="min-h-screen" style={{ backgroundColor: '#023E8A' }}>
       {/* Header */}
       <header className="bg-ocean-800 border-b border-ocean-700 h-[60px]">
-        <div className="max-w-md mx-auto px-2 w-full h-full flex items-center justify-between">
-          <div className="flex items-center gap-2 self-center">
-            <button onClick={() => { loadLeaderboard(); setShowLeaderboardModal(true); }} className="text-sand-500 hover:text-white text-xs sm:text-sm">
-              Leaderboard
-            </button>
-            <button onClick={() => { loadAllPlayers(); setShowPlayersModal(true); }} className="text-sand-500 hover:text-white text-xs sm:text-sm">
-              Players
-            </button>
-          </div>
-          <div className="relative self-center">
-            <button onClick={() => setShowDropdown(!showDropdown)} className="flex items-center gap-2">
+        <div className="max-w-md mx-auto px-1 w-full h-full flex items-center justify-between">
+          <button onClick={() => { loadLeaderboard(); setShowLeaderboardModal(true); }} className="text-sand-500 hover:text-white text-xs sm:text-sm">
+            Leaderboard
+          </button>
+          <button onClick={() => { loadAllPlayers(); setShowPlayersModal(true); }} className="text-sand-500 hover:text-white text-xs sm:text-sm">
+            Players
+          </button>
+          <div className="relative">
+            <button onClick={() => setShowDropdown(!showDropdown)} className="flex items-center">
               {player?.profileImage || player?.profile_image ? (
-                <img src={'http://localhost:3001' + (player.profileImage || player.profile_image)} alt={player?.name} className="w-10 h-10 rounded-full object-cover" />
+                <img src={'http://localhost:3001' + (player.profileImage || player.profile_image)} alt={player?.name} className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover" />
               ) : (
-                <div className="w-10 h-10 rounded-full bg-ocean-700 flex items-center justify-center">🏈</div>
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-ocean-700 flex items-center justify-center">🏈</div>
               )}
             </button>
             {showDropdown && (
