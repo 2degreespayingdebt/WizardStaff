@@ -259,12 +259,18 @@ export default function PlayerHomePage() {
             <div className="p-4 overflow-y-auto flex-1 flex flex-col items-center justify-center">
               <div className="flex flex-col items-center">
                 {selectedPlayerInModal.profileImage || selectedPlayerInModal.profile_image ? (
-                  <img src={'http://localhost:3001' + (selectedPlayerInModal.profileImage || selectedPlayerInModal.profile_image)} alt={selectedPlayerInModal.name} className="w-[50vh] h-[50vh] max-w-[200px] max-h-[200px] rounded-full object-cover mb-4" />
+                  <img src={'http://localhost:3001' + (selectedPlayerInModal.profileImage || selectedPlayerInModal.profile_image)} alt={selectedPlayerInModal.name} className="h-[60vh] max-h-[240px] rounded-full object-cover mb-4" style={{ width: 'auto', maxWidth: '100%' }} />
                 ) : (
-                  <div className="w-[50vh] h-[50vh] max-w-[200px] max-h-[200px] rounded-full bg-ocean-700 flex items-center justify-center text-6xl mb-4">🏈</div>
+                  <div className="h-[60vh] max-h-[240px] rounded-full bg-ocean-700 flex items-center justify-center text-6xl mb-4">🏈</div>
                 )}
-                <p className="text-sand-500 mb-2">Team: {selectedPlayerTeam || 'Not drafted'}</p>
-                <p className="text-sand-500">Season: {seasonName || 'Unknown'}</p>
+                <div className="flex gap-4">
+                  <div className="bg-ocean-800 rounded px-3 py-1 border border-sand-700">
+                    <p className="text-sand-500"><span className="font-bold">Team:</span> {selectedPlayerTeam || 'Not drafted'}</p>
+                  </div>
+                  <div className="bg-ocean-800 rounded px-3 py-1 border border-sand-700">
+                    <p className="text-sand-500"><span className="font-bold">Season:</span> {seasonName || 'Unknown'}</p>
+                  </div>
+                </div>
                 {selectedPlayerInModal.description && (
                   <p className="text-sand-500 mt-4 text-center">{selectedPlayerInModal.description}</p>
                 )}
