@@ -277,7 +277,7 @@ export default function PlayerHomePage() {
       {/* Leaderboard Modal */}
       {showLeaderboardModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-ocean-900 rounded-lg w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col">
+          <div className="bg-ocean-900 rounded-lg w-full max-w-md max-h-[80vh] overflow-y-auto flex flex-col">
             <div className="flex items-center justify-between p-4 border-b border-ocean-700">
               <h2 className="text-lg font-bold">{seasonName || 'Leaderboard'}</h2>
               <button onClick={() => setShowLeaderboardModal(false)} className="text-sand-500 hover:text-white text-xl font-bold w-8 h-8 flex items-center justify-center">
@@ -290,7 +290,7 @@ export default function PlayerHomePage() {
                 🔄 Refresh
               </button>
             </div>
-            <div className="p-4 overflow-y-auto flex-1">
+            <div className="p-4 flex-1">
               {leaderboardLoading ? (
                 <p className="text-sand-500 text-center py-8">Loading...</p>
               ) : leaderboardData.length === 0 ? (
