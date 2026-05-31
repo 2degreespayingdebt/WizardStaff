@@ -248,20 +248,20 @@ export default function PlayerHomePage() {
 
       {/* Player Detail Modal */}
       {selectedPlayerInModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-ocean-900 rounded-lg w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-2">
+          <div className="bg-ocean-900 rounded-lg w-full max-w-md h-[90vh] flex flex-col">
             <div className="flex items-center justify-between p-1.5 border-b border-ocean-700">
               <h2 className="text-lg font-bold">{selectedPlayerInModal.name}</h2>
               <button onClick={() => setSelectedPlayerInModal(null)} className="text-sand-500 hover:text-white text-xl font-bold w-8 h-8 flex items-center justify-center">
                 ✕
               </button>
             </div>
-            <div className="p-4 overflow-y-auto">
+            <div className="p-4 overflow-y-auto flex-1 flex flex-col items-center justify-center">
               <div className="flex flex-col items-center">
                 {selectedPlayerInModal.profileImage || selectedPlayerInModal.profile_image ? (
-                  <img src={'http://localhost:3001' + (selectedPlayerInModal.profileImage || selectedPlayerInModal.profile_image)} alt={selectedPlayerInModal.name} className="w-48 h-48 rounded-full object-cover mb-4" />
+                  <img src={'http://localhost:3001' + (selectedPlayerInModal.profileImage || selectedPlayerInModal.profile_image)} alt={selectedPlayerInModal.name} className="w-[50vh] h-[50vh] max-w-[200px] max-h-[200px] rounded-full object-cover mb-4" />
                 ) : (
-                  <div className="w-48 h-48 rounded-full bg-ocean-700 flex items-center justify-center text-6xl mb-4">🏈</div>
+                  <div className="w-[50vh] h-[50vh] max-w-[200px] max-h-[200px] rounded-full bg-ocean-700 flex items-center justify-center text-6xl mb-4">🏈</div>
                 )}
                 <p className="text-sand-500 mb-2">Team: {selectedPlayerTeam || 'Not drafted'}</p>
                 <p className="text-sand-500">Season: {seasonName || 'Unknown'}</p>
