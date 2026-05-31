@@ -352,14 +352,14 @@ export default function PlayerHomePage() {
                           {(() => {
                             const aTotal = team.players.reduce((sum, p) => sum + p.points, 0);
                             const maxTotal = Math.max(...teamRosters.map(t => t.players.reduce((s, p) => s + p.points, 0)), 0);
-                            const minTotal = Math.min(...teamRosters.map(t => t.players.reduce((s, p) => s + p.points, 0)), 0);
                             if (aTotal === maxTotal && maxTotal > 0) return ' - 1st place';
                             const sortedTotals = [...new Set(teamRosters.map(t => t.players.reduce((s, p) => s + p.points, 0)))].sort((a, b) => b - a);
                             const rank = sortedTotals.indexOf(aTotal) + 1;
                             if (rank === 2) return ' - 2nd place';
                             return '';
                           })()}
-                        </span>
+                          </span>
+                        </div>
                         <span className="text-sand-500">
                           {expandedTeams.has(team.teamName) ? '▲' : '▼'}
                         </span>
