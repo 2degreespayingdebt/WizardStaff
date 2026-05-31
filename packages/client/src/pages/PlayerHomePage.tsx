@@ -146,12 +146,12 @@ export default function PlayerHomePage() {
     <div className="min-h-screen" style={{ backgroundColor: '#023E8A' }}>
       {/* Header */}
       <header className="bg-ocean-800 border-b border-ocean-700 h-[60px]">
-        <div className="max-w-md mx-auto px-3 w-full h-full flex items-center justify-between">
-          <div className="flex items-center gap-4 self-center">
-            <button onClick={() => { loadLeaderboard(); setShowLeaderboardModal(true); }} className="text-sand-500 hover:text-white text-sm">
+        <div className="max-w-md mx-auto px-2 w-full h-full flex items-center justify-between">
+          <div className="flex items-center gap-2 self-center">
+            <button onClick={() => { loadLeaderboard(); setShowLeaderboardModal(true); }} className="text-sand-500 hover:text-white text-xs sm:text-sm">
               Leaderboard
             </button>
-            <button onClick={() => { loadAllPlayers(); setShowPlayersModal(true); }} className="text-sand-500 hover:text-white text-sm">
+            <button onClick={() => { loadAllPlayers(); setShowPlayersModal(true); }} className="text-sand-500 hover:text-white text-xs sm:text-sm">
               Players
             </button>
           </div>
