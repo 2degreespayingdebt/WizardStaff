@@ -313,7 +313,7 @@ export default function PlayerHomePage() {
                           }}
                         />
                         <span className="text-xs mt-1 truncate w-16 text-center">{team.teamName}</span>
-                      </div>
+                        </div>
                     );
                   })}
                 </div>

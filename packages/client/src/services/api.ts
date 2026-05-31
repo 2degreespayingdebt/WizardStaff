@@ -418,12 +418,12 @@ class ApiService {
   }
 
   // Get leaderboard data
-  async getLeaderboard(leagueId: string, seasonId: string): Promise<{ teamName: string; totalPoints: number }[]> {
+  async getLeaderboard(leagueId: string, seasonId: string): Promise<{ teamName: string; teamAvatar: string | null; totalPoints: number }[]> {
     const params = new URLSearchParams({
       league_id: leagueId,
       season_id: seasonId,
     });
-    return this.request<{ teamName: string; totalPoints: number }[]>(`/leaderboard?${params}`);
+    return this.request<{ teamName: string; teamAvatar: string | null; totalPoints: number }[]>(`/leaderboard?${params}`);
   }
 
   // Get team rosters with player points

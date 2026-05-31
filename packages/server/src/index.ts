@@ -388,18 +388,20 @@ app.get("/api/leaderboard", optionalAuth, async (req, res) => {
     const result = await query(
       `SELECT 
         t.name as team_name,
+        t.avatar_url as team_avatar,
         COALESCE(SUM(pp.points), 0) as total_points
        FROM teams t
        LEFT JOIN roster_slots rs ON rs.team_id = t.id
        LEFT JOIN player_points pp ON pp.player_id = rs.player_id AND pp.league_id = t.league_id AND pp.season_id = $2
        WHERE t.league_id = $1
-       GROUP BY t.id, t.name
+       GROUP BY t.id, t.name, t.avatar_url
        ORDER BY total_points DESC`,
       [leagueId, seasonId]
     );
     
     res.json(result.rows.map(row => ({
       teamName: row.team_name,
+      teamAvatar: row.team_avatar,
       totalPoints: parseInt(row.total_points) || 0
     })));
   } catch (error) {
