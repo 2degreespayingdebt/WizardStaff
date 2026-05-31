@@ -56,6 +56,24 @@ export default function PlayerHomePage() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#023E8A' }}>
+      {/* Header */}
+      <header className="bg-ocean-800 border-b border-ocean-700">
+        <div className="max-w-md mx-auto px-3 py-3 flex items-center justify-between">
+          <h1 className="text-base font-bold" style={{ color: '#D4A574' }}>🍺 WizardStaff</h1>
+          <button 
+            onClick={() => {
+              localStorage.removeItem('wizardstaff_role');
+              localStorage.removeItem('wizardstaff_auth');
+              localStorage.removeItem('wizardstaff_token');
+              window.location.href = '/login';
+            }} 
+            className="btn-secondary text-xs"
+          >
+            Logout
+          </button>
+        </div>
+      </header>
+
       <main className="max-w-md mx-auto px-3 py-8">
         <div className="flex flex-col items-center">
           {/* Player Avatar */}
