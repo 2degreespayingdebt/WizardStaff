@@ -101,7 +101,7 @@ export default function Login() {
           </div>
 
           {/* Team Lead Login - No password needed */}
-          <div className="card">
+          <div className="card opacity-50">
             <div className="text-center mb-4">
               <div className="text-3xl md:text-4xl mb-2">🏄</div>
               <h3 className="text-lg md:text-xl font-semibold text-white">Team Lead</h3>
@@ -109,12 +109,11 @@ export default function Login() {
             </div>
             
             <button
-              onClick={handleTeamLeadClick}
-              disabled={loading}
-              className="w-full btn-primary"
-              style={{ backgroundColor: '#00B4D8', color: '#023E8A' }}
+              disabled={true}
+              className="w-full btn-primary cursor-not-allowed"
+              style={{ backgroundColor: '#666', color: '#ccc' }}
             >
-              {loading ? 'Logging in...' : 'Enter as Team Lead'}
+              Deactivated
             </button>
           </div>
 
