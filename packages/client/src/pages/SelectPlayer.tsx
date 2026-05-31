@@ -160,7 +160,7 @@ export default function SelectPlayer() {
           {selectedSeasonId && draftedPlayers.length > 0 && (
             <div className="mt-4">
               <h3 className="text-base font-semibold mb-3">Drafted Players ({draftedPlayers.length})</h3>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 {draftedPlayers.map((pick) => (
                   <button
                     key={pick.id}
@@ -171,10 +171,10 @@ export default function SelectPlayer() {
                       <img
                         src={'http://localhost:3001' + ((pick as any).playerImage || (pick as any).player_image)}
                         alt={pick.playerName}
-                        className="w-12 h-12 rounded-full object-cover mb-1"
+                        className="w-18 h-18 rounded-full object-cover mb-1"
                       />
                     ) : (
-                      <div className="w-12 h-12 rounded-full bg-ocean-700 flex items-center justify-center text-lg mb-1">
+                      <div className="w-18 h-18 rounded-full bg-ocean-700 flex items-center justify-center text-2xl mb-1">
                         🏈
                       </div>
                     )}
