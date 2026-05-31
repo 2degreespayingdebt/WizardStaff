@@ -69,8 +69,8 @@ export default function PlayerHomePage() {
       <header className="bg-ocean-800 border-b border-ocean-700 h-[100px] flex items-center">
         <div className="max-w-md mx-auto px-3 w-full flex items-center justify-between">
           {/* Left: Season Name */}
-          <span className="text-base font-bold" style={{ color: '#D4A574' }}>
-            {seasonName ? `🍺 ${seasonName}` : '🍺 WizardStaff'}
+          <span className="text-xl font-bold" style={{ color: '#D4A574' }}>
+            {seasonName || 'Season'}
           </span>
           
           {/* Right: Avatar with Dropdown */}
