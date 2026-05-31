@@ -7,6 +7,8 @@ export default function PlayerHomePage() {
   const { playerId } = useParams<{ playerId: string }>();
   const [searchParams] = useSearchParams();
   const password = searchParams.get('password') || '';
+  const leagueId = searchParams.get('league') || '';
+  const seasonId = searchParams.get('seasonId') || '';
   const teamName = searchParams.get('team') || '';
   const seasonName = searchParams.get('season') || '';
   const [player, setPlayer] = useState<Player | null>(null);
@@ -48,6 +50,12 @@ export default function PlayerHomePage() {
       if (data && password && data.name === password) {
         setPlayer(data);
         setAuthorized(true);
+        
+        // Load points from DB if leagueId and seasonId are available
+        if (leagueId && seasonId) {
+          const savedPoints = await api.getPlayerPoints(leagueId, seasonId, id);
+          setCount(savedPoints);
+        }
       } else if (data && !password) {
         // No password provided, allow access (for testing)
         setPlayer(data);
@@ -60,12 +68,22 @@ export default function PlayerHomePage() {
     }
   };
 
-  const handleMinus = () => {
-    setCount(prev => Math.max(0, prev - 1));
+  const handleMinus = async () => {
+    const newCount = Math.max(0, count - 1);
+    setCount(newCount);
+    // Save to DB
+    if (authorized && leagueId && seasonId && playerId) {
+      await api.updatePlayerPoints(leagueId, seasonId, playerId, newCount);
+    }
   };
 
-  const handlePlus = () => {
-    setCount(prev => prev + 1);
+  const handlePlus = async () => {
+    const newCount = count + 1;
+    setCount(newCount);
+    // Save to DB
+    if (authorized && leagueId && seasonId && playerId) {
+      await api.updatePlayerPoints(leagueId, seasonId, playerId, newCount);
+    }
   };
 
   if (loading) {

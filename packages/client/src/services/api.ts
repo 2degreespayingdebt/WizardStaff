@@ -387,6 +387,25 @@ class ApiService {
       method: 'POST',
     });
   }
+
+  // Get player points
+  async getPlayerPoints(leagueId: string, seasonId: string, playerId: string): Promise<number> {
+    const params = new URLSearchParams({
+      league_id: leagueId,
+      season_id: seasonId,
+      player_id: playerId,
+    });
+    const result = await this.request<{ points: number }>(`/player-points?${params}`);
+    return result.points || 0;
+  }
+
+  // Update player points
+  async updatePlayerPoints(leagueId: string, seasonId: string, playerId: string, points: number): Promise<{ success: boolean; points: number }> {
+    return this.request<{ success: boolean; points: number }>(`/player-points`, {
+      method: 'POST',
+      body: JSON.stringify({ leagueId, seasonId, playerId, points }),
+    });
+  }
 }
 
 export const api = new ApiService();

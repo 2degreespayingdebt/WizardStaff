@@ -294,3 +294,48 @@ httpServer.listen(PORT, () => {
 });
 
 export { app, io };
+// Get or update player points
+app.get("/api/player-points", optionalAuth, async (req, res) => {
+  try {
+    const leagueId = req.query.league_id as string;
+    const seasonId = req.query.season_id as string;
+    const playerId = req.query.player_id as string;
+    
+    if (!leagueId || !seasonId || !playerId) {
+      return res.status(400).json({ error: 'Missing league_id, season_id, or player_id' });
+    }
+    
+    const result = await query(
+      'SELECT points FROM player_points WHERE league_id = $1 AND season_id = $2 AND player_id = $3',
+      [leagueId, seasonId, playerId]
+    );
+    
+    res.json({ points: result.rows[0]?.points || 0 });
+  } catch (error) {
+    console.error('Get player points error:', error);
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+app.post("/api/player-points", optionalAuth, async (req, res) => {
+  try {
+    const { leagueId, seasonId, playerId, points } = req.body;
+    
+    if (!leagueId || !seasonId || !playerId || points === undefined) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+    
+    await query(
+      `INSERT INTO player_points (league_id, season_id, player_id, points, updated_at)
+       VALUES ($1, $2, $3, $4, NOW())
+       ON CONFLICT (league_id, season_id, player_id)
+       DO UPDATE SET points = $4, updated_at = NOW()`,
+      [leagueId, seasonId, playerId, points]
+    );
+    
+    res.json({ success: true, points });
+  } catch (error) {
+    console.error('Update player points error:', error);
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
