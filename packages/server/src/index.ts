@@ -12,6 +12,7 @@ import teamRoutes from './routes/teams.js';
 import { authenticateToken, optionalAuth, AuthRequest } from './middleware/auth.js';
 import * as seasonModel from './models/season.js';
 import * as draftModel from './models/draft.js';
+import { query } from './config/db.js';
 
 dotenv.config();
 
