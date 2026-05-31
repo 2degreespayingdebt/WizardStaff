@@ -1,0 +1,101 @@
+import { useState, useEffect } from 'react';
+import { useParams, useSearchParams, Navigate } from 'react-router-dom';
+import { api } from '../services/api';
+import type { Player } from '../types';
+
+export default function PlayerHomePage() {
+  const { playerId } = useParams<{ playerId: string }>();
+  const [searchParams] = useSearchParams();
+  const password = searchParams.get('password') || '';
+  const [player, setPlayer] = useState<Player | null>(null);
+  const [count, setCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [authorized, setAuthorized] = useState(false);
+
+  useEffect(() => {
+    if (playerId && password) {
+      loadPlayer(playerId);
+    }
+  }, [playerId, password]);
+
+  const loadPlayer = async (id: string) => {
+    try {
+      const data = await api.getPlayer(id);
+      // Verify password matches player name (case sensitive)
+      if (data && password && data.name === password) {
+        setPlayer(data);
+        setAuthorized(true);
+      } else if (data && !password) {
+        // No password provided, allow access (for testing)
+        setPlayer(data);
+        setAuthorized(true);
+      }
+    } catch (error) {
+      console.error('Failed to load player:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleMinus = () => {
+    setCount(prev => Math.max(0, prev - 1));
+  };
+
+  const handlePlus = () => {
+    setCount(prev => prev + 1);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#023E8A' }}>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2" style={{ borderColor: '#D4A574' }}></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen" style={{ backgroundColor: '#023E8A' }}>
+      <main className="max-w-md mx-auto px-3 py-8">
+        <div className="flex flex-col items-center">
+          {/* Player Avatar */}
+          {player?.profileImage || player?.profile_image ? (
+            <img
+              src={'http://localhost:3001' + (player.profileImage || player.profile_image)}
+              alt={player.name}
+              className="w-32 h-32 rounded-full object-cover mb-4"
+            />
+          ) : (
+            <div className="w-32 h-32 rounded-full bg-ocean-700 flex items-center justify-center text-5xl mb-4">
+              🏈
+            </div>
+          )}
+          
+          {/* Player Name */}
+          <h1 className="text-2xl font-bold text-center mb-6">{player?.name || 'Unknown Player'}</h1>
+          
+          {/* Counter Section */}
+          <div className="flex items-center gap-6">
+            {/* Minus Button */}
+            <button
+              onClick={handleMinus}
+              className="w-14 h-14 rounded-full bg-ocean-700 hover:bg-ocean-600 text-2xl font-bold flex items-center justify-center"
+            >
+              −
+            </button>
+            
+            {/* Count Display */}
+            <span className="text-4xl font-bold w-12 text-center">{count}</span>
+            
+            {/* Plus Button */}
+            <button
+              onClick={handlePlus}
+              className="w-14 h-14 rounded-full bg-ocean-700 hover:bg-ocean-600 text-2xl font-bold flex items-center justify-center"
+            >
+              +
+            </button>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}

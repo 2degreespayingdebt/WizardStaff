@@ -72,7 +72,8 @@ export interface Player {
   projected_points: string | null;
   adp: string | null;
   profileImage?: string | null;  // Legacy/client-side alias for profile_image
-  profile_image?: string | null;  // From API
+  profile_image?: string | null;  // From API (file path)
+  imageData?: string | null;  // Base64 encoded image from database
   description?: string | null;
 }
 
@@ -117,6 +118,7 @@ export interface Season {
   leagueId: string;
   name: string;
   isActive: boolean;
+  draftId?: string | null;
   createdAt: string;
 }
 

@@ -6,7 +6,9 @@ import Leagues from './pages/Leagues';
 import League from './pages/League';
 import Season from './pages/Season';
 import Draft from './pages/Draft';
+import SelectPlayer from './pages/SelectPlayer';
 import PlayerProfile from './pages/PlayerProfile';
+import PlayerHomePage from './pages/PlayerHomePage';
 import CreateDrinker from './pages/CreateDrinker';
 import BulkImport from './pages/BulkImport';
 import PlayerList from './pages/PlayerList';
@@ -112,6 +114,22 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <BulkImport />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/select-player"
+            element={
+              <ProtectedRoute>
+                <SelectPlayer />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/player/:playerId"
+            element={
+              <ProtectedRoute>
+                <PlayerHomePage />
               </ProtectedRoute>
             }
           />

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
-import type { Season, SeasonTeam, Team } from '../types';
+import type { Season, SeasonTeam, Team, DraftPick, Player } from '../types';
 
 export default function SeasonPage() {
   const { leagueId, seasonId } = useParams<{ leagueId: string; seasonId: string }>();
@@ -13,6 +13,7 @@ export default function SeasonPage() {
   const [league, setLeague] = useState<any>(null);
   const [seasonTeams, setSeasonTeams] = useState<SeasonTeam[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
+  const [draftedPlayers, setDraftedPlayers] = useState<DraftPick[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,6 +53,27 @@ export default function SeasonPage() {
       
       // Load all league teams for adding
       setTeams(leagueData.teams || []);
+      
+      // Load draft ID for this season
+      let draftId = null;
+      try {
+        const draftResult = await api.getOrCreateDraft(seasonId!);
+        draftId = draftResult.draftId;
+      } catch (err) {
+        // No draft yet, that's ok
+      }
+      
+      // Load draft board for drafted players (if draft exists)
+      if (draftId) {
+        const board = await api.getDraftBoard(draftId);
+        if (board?.picks) {
+          // Filter to only drafted players (with playerId) and sort alphabetically
+          const drafted = board.picks
+            .filter(p => p.playerId)
+            .sort((a, b) => (a.playerName || '').localeCompare(b.playerName || ''));
+          setDraftedPlayers(drafted);
+        }
+      }
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -331,6 +353,34 @@ export default function SeasonPage() {
             </div>
           )}
         </div>
+
+        {/* Drafted Players */}
+        {draftedPlayers.length > 0 && (
+          <div className="card mt-6">
+            <h3 className="text-lg font-semibold mb-4">Drafted Players ({draftedPlayers.length})</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+              {draftedPlayers.map((pick) => (
+                <div
+                  key={pick.id}
+                  className="bg-ocean-800 rounded-lg p-3 flex flex-col items-center"
+                >
+                  {(pick as any).playerImage || (pick as any).player_image ? (
+                    <img
+                      src={'http://localhost:3001' + ((pick as any).playerImage || (pick as any).player_image)}
+                      alt={pick.playerName}
+                      className="w-16 h-16 rounded-full object-cover mb-2"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 rounded-full bg-ocean-700 flex items-center justify-center text-2xl mb-2">
+                      🏈
+                    </div>
+                  )}
+                  <span className="text-sm font-medium text-center">{pick.playerName}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
