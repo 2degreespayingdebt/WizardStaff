@@ -20,6 +20,9 @@ export default function PlayerHomePage() {
   const [showLeaderboardModal, setShowLeaderboardModal] = useState(false);
   const [leaderboardData, setLeaderboardData] = useState<{ teamName: string; totalPoints: number }[]>([]);
   const [leaderboardLoading, setLeaderboardLoading] = useState(false);
+  const [expandedTeams, setExpandedTeams] = useState<Set<string>>(new Set());
+  const [teamRosters, setTeamRosters] = useState<{ teamName: string; players: { playerId: string; playerName: string; points: number; avatarUrl: string }[] }[]>([]);
+  const [rosterLoading, setRosterLoading] = useState(false);
   const [allPlayers, setAllPlayers] = useState<Player[]>([]);
   const [playersLoading, setPlayersLoading] = useState(false);
   const [authorized, setAuthorized] = useState(false);
@@ -103,14 +106,32 @@ export default function PlayerHomePage() {
   const loadLeaderboard = async () => {
     if (!leagueId || !seasonId) return;
     setLeaderboardLoading(true);
+    setRosterLoading(true);
     try {
-      const data = await api.getLeaderboard(leagueId, seasonId);
-      setLeaderboardData(data);
+      const [leaderData, rosterData] = await Promise.all([
+        api.getLeaderboard(leagueId, seasonId),
+        api.getTeamRosters(leagueId, seasonId)
+      ]);
+      setLeaderboardData(leaderData);
+      setTeamRosters(rosterData);
     } catch (error) {
       console.error('Failed to load leaderboard:', error);
     } finally {
       setLeaderboardLoading(false);
+      setRosterLoading(false);
     }
+  };
+
+  const toggleTeamExpand = (teamName: string) => {
+    setExpandedTeams(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(teamName)) {
+        newSet.delete(teamName);
+      } else {
+        newSet.add(teamName);
+      }
+      return newSet;
+    });
   };
 
   if (loading) {
@@ -297,6 +318,49 @@ export default function PlayerHomePage() {
                   })}
                 </div>
               )}
+            </div>
+            
+            {/* Team Rosters - Collapsible */}
+            <div className="border-t border-ocean-700">
+              <div className="p-3 bg-ocean-800">
+                <span className="text-sand-500 text-sm">Team Rosters (Sorted by Points)</span>
+              </div>
+              <div className="max-h-64 overflow-y-auto">
+                {rosterLoading ? (
+                  <p className="text-sand-500 text-center py-4">Loading...</p>
+                ) : teamRosters.length === 0 ? (
+                  <p className="text-sand-500 text-center py-4">No rosters found.</p>
+                ) : (
+                  teamRosters.map((team) => (
+                    <div key={team.teamName} className="border-b border-ocean-700">
+                      <button 
+                        onClick={() => toggleTeamExpand(team.teamName)}
+                        className="w-full p-3 flex items-center justify-between hover:bg-ocean-800"
+                      >
+                        <span className="font-medium">{team.teamName}</span>
+                        <span className="text-sand-500">
+                          {expandedTeams.has(team.teamName) ? '▲' : '▼'}
+                        </span>
+                      </button>
+                      {expandedTeams.has(team.teamName) && (
+                        <div className="p-3 flex flex-wrap gap-3 bg-ocean-800/50">
+                          {team.players.map((player) => (
+                            <div key={player.playerId} className="flex flex-col items-center">
+                              {player.avatarUrl ? (
+                                <img src={'http://localhost:3001' + player.avatarUrl} alt={player.playerName} className="w-10 h-10 rounded-full object-cover mb-1" />
+                              ) : (
+                                <div className="w-10 h-10 rounded-full bg-ocean-700 flex items-center justify-center mb-1">🏈</div>
+                              )}
+                              <span className="text-xs text-center">{player.playerName}</span>
+                              <span className="text-xs text-sand-500">- {player.points}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </div>
         </div>

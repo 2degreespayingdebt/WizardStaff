@@ -425,6 +425,15 @@ class ApiService {
     });
     return this.request<{ teamName: string; totalPoints: number }[]>(`/leaderboard?${params}`);
   }
+
+  // Get team rosters with player points
+  async getTeamRosters(leagueId: string, seasonId: string): Promise<{ teamName: string; players: { playerId: string; playerName: string; points: number; avatarUrl: string }[] }[]> {
+    const params = new URLSearchParams({
+      league_id: leagueId,
+      season_id: seasonId,
+    });
+    return this.request<{ teamName: string; players: { playerId: string; playerName: string; points: number; avatarUrl: string }[] }[]>(`/team-rosters?${params}`);
+  }
 }
 
 export const api = new ApiService();

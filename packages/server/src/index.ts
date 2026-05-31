@@ -407,3 +407,58 @@ app.get("/api/leaderboard", optionalAuth, async (req, res) => {
     res.status(500).json({ error: (error as Error).message });
   }
 });
+
+// Get team rosters with player points for a season
+app.get("/api/team-rosters", optionalAuth, async (req, res) => {
+  try {
+    const leagueId = req.query.league_id as string;
+    const seasonId = req.query.season_id as string;
+    
+    if (!leagueId || !seasonId) {
+      return res.status(400).json({ error: 'Missing league_id or season_id' });
+    }
+    
+    // Get all teams with their players and points
+    const result = await query(
+      `SELECT 
+        t.name as team_name,
+        p.id as player_id,
+        p.name as player_name,
+        p.profile_image as player_avatar,
+        COALESCE(pp.points, 0) as player_points
+       FROM teams t
+       LEFT JOIN roster_slots rs ON rs.team_id = t.id
+       LEFT JOIN players p ON p.id = rs.player_id
+       LEFT JOIN player_points pp ON pp.player_id = rs.player_id AND pp.league_id = t.league_id AND pp.season_id = $2
+       WHERE t.league_id = $1 AND rs.player_id IS NOT NULL
+       ORDER BY team_name, player_points DESC, player_name`,
+      [leagueId, seasonId]
+    );
+    
+    // Group by team
+    const teamMap = new Map<string, { playerId: string; playerName: string; points: number; avatarUrl: string }[]>();
+    for (const row of result.rows) {
+      if (!teamMap.has(row.team_name)) {
+        teamMap.set(row.team_name, []);
+      }
+      if (row.player_id) {
+        teamMap.get(row.team_name)!.push({
+          playerId: row.player_id,
+          playerName: row.player_name,
+          points: parseInt(row.player_points) || 0,
+          avatarUrl: row.player_avatar
+        });
+      }
+    }
+    
+    const rosterData = Array.from(teamMap.entries()).map(([teamName, players]) => ({
+      teamName,
+      players
+    }));
+    
+    res.json(rosterData);
+  } catch (error) {
+    console.error('Get team rosters error:', error);
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
