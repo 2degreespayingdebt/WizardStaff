@@ -14,6 +14,7 @@ export default function PlayerHomePage() {
   const [player, setPlayer] = useState<Player | null>(null);
   const [count, setCount] = useState(0);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showPlayersModal, setShowPlayersModal] = useState(false);
   
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -100,9 +101,25 @@ export default function PlayerHomePage() {
       <header className="bg-ocean-800 border-b border-ocean-700 h-[60px]">
         <div className="max-w-md mx-auto px-3 w-full h-full flex items-center justify-between">
           {/* Left: Season Name */}
-          <span className="text-xl font-bold self-center" style={{ color: '#D4A574' }}>
+          <span className="text-sm font-bold self-center" style={{ color: '#D4A574' }}>
             {seasonName || 'Season'}
           </span>
+          
+          {/* Center/Nav Links */}
+          <div className="flex items-center gap-4 self-center">
+            <button 
+              onClick={() => alert('Leaderboard')}
+              className="text-sand-500 hover:text-white text-sm"
+            >
+              Leaderboard
+            </button>
+            <button 
+              onClick={() => setShowPlayersModal(true)}
+              className="text-sand-500 hover:text-white text-sm"
+            >
+              Players
+            </button>
+          </div>
           
           {/* Right: Avatar with Dropdown */}
           <div className="relative self-center">
@@ -192,5 +209,4 @@ export default function PlayerHomePage() {
         </div>
       </main>
     </div>
-  );
-}
+  );}
