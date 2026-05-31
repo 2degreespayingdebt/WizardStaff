@@ -284,8 +284,8 @@ export default function PlayerHomePage() {
                 ✕
               </button>
             </div>
-            <div className="p-4 flex items-center justify-between border-b border-ocean-700">
-              <span className="text-sand-500 text-sm">Bar Graph (Team Points)</span>
+            <div className="p-1 flex items-center justify-between border-b border-ocean-700">
+              <span className="text-sand-500 text-sm">Leaderboard</span>
               <button onClick={loadLeaderboard} className="text-sand-500 hover:text-white text-sm">
                 🔄 Refresh
               </button>
