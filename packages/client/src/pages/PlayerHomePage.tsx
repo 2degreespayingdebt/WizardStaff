@@ -147,10 +147,10 @@ export default function PlayerHomePage() {
       {/* Header */}
       <header className="bg-ocean-800 border-b border-ocean-700 h-[60px] relative">
         <div className="max-w-md mx-auto px-1 w-full h-full flex items-center justify-between">
-          <button onClick={() => { loadLeaderboard(); setShowLeaderboardModal(true); }} className="text-sand-500 hover:text-white text-xs sm:text-sm absolute left-1">
+          <button onClick={() => { loadLeaderboard(); setShowLeaderboardModal(true); }} className="text-sand-500 hover:text-white text-sm sm:text-base absolute left-1">
             Leaderboard
           </button>
-          <button onClick={() => { loadAllPlayers(); setShowPlayersModal(true); }} className="text-sand-500 hover:text-white text-xs sm:text-sm absolute left-1/2 transform -translate-x-1/2">
+          <button onClick={() => { loadAllPlayers(); setShowPlayersModal(true); }} className="text-sand-500 hover:text-white text-sm sm:text-base absolute left-1/2 transform -translate-x-1/2">
             Players
           </button>
           <div className="absolute right-1">
