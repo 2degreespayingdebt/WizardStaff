@@ -331,7 +331,12 @@ export default function PlayerHomePage() {
                 ) : teamRosters.length === 0 ? (
                   <p className="text-sand-500 text-center py-4">No rosters found.</p>
                 ) : (
-                  teamRosters.map((team) => (
+                  // Sort teams by their total points (matching graph order)
+                  [...teamRosters].sort((a, b) => {
+                    const aTotal = a.players.reduce((sum, p) => sum + p.points, 0);
+                    const bTotal = b.players.reduce((sum, p) => sum + p.points, 0);
+                    return bTotal - aTotal;
+                  }).map((team) => (
                     <div key={team.teamName} className="border-b border-ocean-700">
                       <button 
                         onClick={() => toggleTeamExpand(team.teamName)}
