@@ -363,9 +363,9 @@ export default function PlayerHomePage() {
                           {team.players.map((player) => (
                             <div key={player.playerId} className="flex flex-col items-center">
                               {player.avatarUrl ? (
-                                <img src={'http://localhost:3001' + player.avatarUrl} alt={player.playerName} className="w-10 h-10 rounded-full object-cover mb-1" />
+                                <img src={'http://localhost:3001' + player.avatarUrl} alt={player.playerName} className="w-15 h-15 rounded-full object-cover mb-1" />
                               ) : (
-                                <div className="w-10 h-10 rounded-full bg-ocean-700 flex items-center justify-center mb-1">🏈</div>
+                                <div className="w-15 h-15 rounded-full bg-ocean-700 flex items-center justify-center mb-1">🏈</div>
                               )}
                               <span className="text-xs text-center">{player.playerName}</span>
                               <span className="text-xs text-sand-500"> {player.points}</span>
