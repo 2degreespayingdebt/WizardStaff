@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useSearchParams, Navigate } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { api } from '../services/api';
 import type { Player } from '../types';
 
@@ -7,6 +7,7 @@ export default function PlayerHomePage() {
   const { playerId } = useParams<{ playerId: string }>();
   const [searchParams] = useSearchParams();
   const password = searchParams.get('password') || '';
+  const teamName = searchParams.get('team') || '';
   const [player, setPlayer] = useState<Player | null>(null);
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -62,16 +63,24 @@ export default function PlayerHomePage() {
             <img
               src={'http://localhost:3001' + (player.profileImage || player.profile_image)}
               alt={player.name}
-              className="w-32 h-32 rounded-full object-cover mb-4"
+              className="w-[240px] h-[300px] rounded-full object-cover mb-4"
             />
           ) : (
-            <div className="w-32 h-32 rounded-full bg-ocean-700 flex items-center justify-center text-5xl mb-4">
+            <div className="w-[240px] h-[300px] rounded-full bg-ocean-700 flex items-center justify-center text-6xl mb-4">
               🏈
             </div>
           )}
           
           {/* Player Name */}
-          <h1 className="text-2xl font-bold text-center mb-6">{player?.name || 'Unknown Player'}</h1>
+          <h1 className="text-3xl font-bold text-center mb-2">{player?.name || 'Unknown Player'}</h1>
+          
+          {/* Team Name Box */}
+          {teamName && (
+            <div className="bg-ocean-800 px-6 py-3 rounded-lg border border-ocean-700 mb-6">
+              <span className="text-sand-500">Team: </span>
+              <span className="font-bold">{teamName}</span>
+            </div>
+          )}
           
           {/* Counter Section */}
           <div className="flex items-center gap-6">

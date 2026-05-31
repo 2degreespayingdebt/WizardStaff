@@ -237,8 +237,9 @@ export default function SelectPlayer() {
               <button
                 onClick={() => {
                   if (password === selectedPlayer.playerName) {
-                    // Navigate to PlayerHomePage with player ID and password
-                    navigate(`/player/${selectedPlayer.playerId}?password=${encodeURIComponent(password)}`);
+                    // Navigate to PlayerHomePage with player ID, password, and team name
+                    const teamName = (selectedPlayer as any).teamName || '';
+                    navigate(`/player/${selectedPlayer.playerId}?password=${encodeURIComponent(password)}&team=${encodeURIComponent(teamName)}`);
                   } else {
                     alert('Incorrect password. Please enter the player name.');
                   }
