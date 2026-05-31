@@ -406,6 +406,16 @@ class ApiService {
       body: JSON.stringify({ leagueId, seasonId, playerId, points }),
     });
   }
+
+  // Get player team for season
+  async getPlayerTeam(leagueId: string, seasonId: string, playerId: string): Promise<{ teamName: string | null; teamId: string | null }> {
+    const params = new URLSearchParams({
+      league_id: leagueId,
+      season_id: seasonId,
+      player_id: playerId,
+    });
+    return this.request<{ teamName: string | null; teamId: string | null }>(`/player-team?${params}`);
+  }
 }
 
 export const api = new ApiService();

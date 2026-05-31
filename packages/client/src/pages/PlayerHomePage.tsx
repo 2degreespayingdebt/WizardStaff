@@ -16,6 +16,7 @@ export default function PlayerHomePage() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showPlayersModal, setShowPlayersModal] = useState(false);
   const [selectedPlayerInModal, setSelectedPlayerInModal] = useState<Player | null>(null);
+  const [selectedPlayerTeam, setSelectedPlayerTeam] = useState<string | null>(null);
   const [allPlayers, setAllPlayers] = useState<Player[]>([]);
   const [playersLoading, setPlayersLoading] = useState(false);
   const [authorized, setAuthorized] = useState(false);
@@ -183,7 +184,16 @@ export default function PlayerHomePage() {
               ) : (
                 <div className="grid grid-cols-2 gap-4">
                   {allPlayers.map((p) => (
-                    <button key={p.id} onClick={() => setSelectedPlayerInModal(p)} className="flex flex-col items-center p-2 bg-ocean-800 rounded-lg hover:bg-ocean-700">
+                    <button key={p.id} onClick={async () => {
+                    // Fetch player's team for this season
+                    let playerTeamName = null;
+                    if (leagueId && seasonId) {
+                      const teamData = await api.getPlayerTeam(leagueId, seasonId, p.id);
+                      playerTeamName = teamData.teamName;
+                    }
+                    setSelectedPlayerTeam(playerTeamName);
+                    setSelectedPlayerInModal(p);
+                  }} className="flex flex-col items-center p-2 bg-ocean-800 rounded-lg hover:bg-ocean-700">
                       {p.profileImage || p.profile_image ? (
                         <img src={'http://localhost:3001' + (p.profileImage || p.profile_image)} alt={p.name} className="w-24 h-24 rounded-full object-cover mb-1" />
                       ) : (
@@ -216,7 +226,7 @@ export default function PlayerHomePage() {
                 ) : (
                   <div className="w-48 h-48 rounded-full bg-ocean-700 flex items-center justify-center text-6xl mb-4">🏈</div>
                 )}
-                <p className="text-sand-500 mb-2">Team: {teamName || 'Unknown'}</p>
+                <p className="text-sand-500 mb-2">Team: {selectedPlayerTeam || 'Not drafted'}</p>
                 <p className="text-sand-500">Season: {seasonName || 'Unknown'}</p>
                 {selectedPlayerInModal.description && (
                   <p className="text-sand-500 mt-4 text-center">{selectedPlayerInModal.description}</p>

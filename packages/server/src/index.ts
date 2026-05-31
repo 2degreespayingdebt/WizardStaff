@@ -339,3 +339,36 @@ app.post("/api/player-points", optionalAuth, async (req, res) => {
     res.status(500).json({ error: (error as Error).message });
   }
 });
+
+// Get player team for a given season
+app.get("/api/player-team", optionalAuth, async (req, res) => {
+  try {
+    const leagueId = req.query.league_id as string;
+    const seasonId = req.query.season_id as string;
+    const playerId = req.query.player_id as string;
+    
+    if (!leagueId || !seasonId || !playerId) {
+      return res.status(400).json({ error: 'Missing league_id, season_id, or player_id' });
+    }
+    
+    // Find which team drafted this player in the given season
+    const result = await query(
+      `SELECT t.name as team_name, t.id as team_id
+       FROM draft_picks dp
+       JOIN teams t ON t.id = dp.team_id
+       JOIN drafts d ON d.id = dp.draft_id
+       WHERE d.league_id = $1 AND d.season_id = $2 AND dp.player_id = $3
+       LIMIT 1`,
+      [leagueId, seasonId, playerId]
+    );
+    
+    if (result.rows.length > 0) {
+      res.json({ teamName: result.rows[0].team_name, teamId: result.rows[0].team_id });
+    } else {
+      res.json({ teamName: null, teamId: null });
+    }
+  } catch (error) {
+    console.error('Get player team error:', error);
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
