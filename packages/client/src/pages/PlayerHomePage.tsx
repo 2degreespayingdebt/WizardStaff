@@ -66,15 +66,15 @@ export default function PlayerHomePage() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#023E8A' }}>
       {/* Header - Single line, max height 60px */}
-      <header className="bg-ocean-800 border-b border-ocean-700 h-[60px] flex items-center">
-        <div className="max-w-md mx-auto px-3 w-full flex items-center justify-between">
+      <header className="bg-ocean-800 border-b border-ocean-700 h-[60px]">
+        <div className="max-w-md mx-auto px-3 w-full h-full flex items-center justify-between">
           {/* Left: Season Name */}
-          <span className="text-xl font-bold" style={{ color: '#D4A574' }}>
+          <span className="text-xl font-bold self-center" style={{ color: '#D4A574' }}>
             {seasonName || 'Season'}
           </span>
           
           {/* Right: Avatar with Dropdown */}
-          <div className="relative">
+          <div className="relative self-center">
             <button 
               onClick={() => setShowDropdown(!showDropdown)}
               className="flex items-center gap-2"
