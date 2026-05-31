@@ -171,10 +171,10 @@ export default function SelectPlayer() {
                       <img
                         src={'http://localhost:3001' + ((pick as any).playerImage || (pick as any).player_image)}
                         alt={pick.playerName}
-                        className="w-18 h-18 rounded-full object-cover mb-1"
+                        className="w-20 h-20 rounded-full object-cover object-center mb-1"
                       />
                     ) : (
-                      <div className="w-18 h-18 rounded-full bg-ocean-700 flex items-center justify-center text-2xl mb-1">
+                      <div className="w-20 h-20 rounded-full bg-ocean-700 flex items-center justify-center text-2xl mb-1">
                         🏈
                       </div>
                     )}
