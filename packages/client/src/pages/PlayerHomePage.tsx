@@ -15,6 +15,7 @@ export default function PlayerHomePage() {
   const [count, setCount] = useState(0);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showPlayersModal, setShowPlayersModal] = useState(false);
+  const [selectedPlayerInModal, setSelectedPlayerInModal] = useState<Player | null>(null);
   const [allPlayers, setAllPlayers] = useState<Player[]>([]);
   const [playersLoading, setPlayersLoading] = useState(false);
   const [authorized, setAuthorized] = useState(false);
@@ -182,17 +183,45 @@ export default function PlayerHomePage() {
               ) : (
                 <div className="grid grid-cols-2 gap-4">
                   {allPlayers.map((p) => (
-                    <div key={p.id} className="flex flex-col items-center p-2 bg-ocean-800 rounded-lg">
+                    <button key={p.id} onClick={() => setSelectedPlayerInModal(p)} className="flex flex-col items-center p-2 bg-ocean-800 rounded-lg hover:bg-ocean-700">
                       {p.profileImage || p.profile_image ? (
-                        <img src={'http://localhost:3001' + (p.profileImage || p.profile_image)} alt={p.name} className="w-12 h-12 rounded-full object-cover mb-1" />
+                        <img src={'http://localhost:3001' + (p.profileImage || p.profile_image)} alt={p.name} className="w-24 h-24 rounded-full object-cover mb-1" />
                       ) : (
-                        <div className="w-12 h-12 rounded-full bg-ocean-700 flex items-center justify-center mb-1">🏈</div>
+                        <div className="w-24 h-24 rounded-full bg-ocean-700 flex items-center justify-center mb-1">🏈</div>
                       )}
-                      <span className="text-xs text-center">{p.name}</span>
-                    </div>
+                      <span className="text-sm text-center">{p.name}</span>
+                    </button>
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Player Detail Modal */}
+      {selectedPlayerInModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-ocean-900 rounded-lg w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b border-ocean-700">
+              <h2 className="text-lg font-bold">{selectedPlayerInModal.name}</h2>
+              <button onClick={() => setSelectedPlayerInModal(null)} className="text-sand-500 hover:text-white text-xl font-bold w-8 h-8 flex items-center justify-center">
+                ✕
+              </button>
+            </div>
+            <div className="p-4 overflow-y-auto">
+              <div className="flex flex-col items-center">
+                {selectedPlayerInModal.profileImage || selectedPlayerInModal.profile_image ? (
+                  <img src={'http://localhost:3001' + (selectedPlayerInModal.profileImage || selectedPlayerInModal.profile_image)} alt={selectedPlayerInModal.name} className="w-48 h-48 rounded-full object-cover mb-4" />
+                ) : (
+                  <div className="w-48 h-48 rounded-full bg-ocean-700 flex items-center justify-center text-6xl mb-4">🏈</div>
+                )}
+                <p className="text-sand-500 mb-2">Team: {teamName || 'Unknown'}</p>
+                <p className="text-sand-500">Season: {seasonName || 'Unknown'}</p>
+                {selectedPlayerInModal.description && (
+                  <p className="text-sand-500 mt-4 text-center">{selectedPlayerInModal.description}</p>
+                )}
+              </div>
             </div>
           </div>
         </div>
