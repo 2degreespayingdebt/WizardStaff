@@ -8,6 +8,7 @@ export default function PlayerHomePage() {
   const [searchParams] = useSearchParams();
   const password = searchParams.get('password') || '';
   const teamName = searchParams.get('team') || '';
+  const seasonName = searchParams.get('season') || '';
   const [player, setPlayer] = useState<Player | null>(null);
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -59,7 +60,9 @@ export default function PlayerHomePage() {
       {/* Header */}
       <header className="bg-ocean-800 border-b border-ocean-700">
         <div className="max-w-md mx-auto px-3 py-3 flex items-center justify-between">
-          <h1 className="text-base font-bold" style={{ color: '#D4A574' }}>🍺 WizardStaff</h1>
+          <h1 className="text-base font-bold" style={{ color: '#D4A574' }}>
+            {seasonName ? `🍺 ${seasonName}` : '🍺 WizardStaff'}
+          </h1>
           <button 
             onClick={() => {
               localStorage.removeItem('wizardstaff_role');
