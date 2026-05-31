@@ -100,8 +100,8 @@ export default function SelectPlayer() {
     <div className="min-h-screen" style={{ backgroundColor: '#023E8A' }}>
       {/* Header */}
       <header className="border-b" style={{ backgroundColor: '#0077B6', borderColor: '#D4A574' }}>
-        <div className="max-w-md mx-auto px-3 py-3 flex items-center justify-between">
-          <h1 className="text-base font-bold" style={{ color: '#D4A574' }}>🍺 WizardStaff</h1>
+        <div className="max-w-md mx-auto px-2 py-2 flex items-center justify-between">
+          <h1 className="text-sm font-bold" style={{ color: '#D4A574' }}>🍺 WizardStaff</h1>
           <button 
             onClick={() => { logout(); window.location.href = '/login'; }} 
             className="btn-secondary text-xs px-2 py-1"
@@ -160,7 +160,7 @@ export default function SelectPlayer() {
           {selectedSeasonId && draftedPlayers.length > 0 && (
             <div className="mt-4">
               <h3 className="text-base font-semibold mb-3">Drafted Players ({draftedPlayers.length})</h3>
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-2 gap-2 sm:gap-6">
                 {draftedPlayers.map((pick) => (
                   <button
                     key={pick.id}
@@ -171,10 +171,10 @@ export default function SelectPlayer() {
                       <img
                         src={'http://localhost:3001' + ((pick as any).playerImage || (pick as any).player_image)}
                         alt={pick.playerName}
-                        className="w-[120px] h-[150px] rounded-full object-cover object-center mb-1"
+                        className="w-[80px] h-[100px] sm:w-[120px] sm:h-[150px] rounded-full object-cover object-center mb-1"
                       />
                     ) : (
-                      <div className="w-[120px] h-[150px] rounded-full bg-ocean-700 flex items-center justify-center text-4xl mb-1">
+                      <div className="w-[80px] h-[100px] sm:w-[120px] sm:h-[150px] rounded-full bg-ocean-700 flex items-center justify-center text-2xl sm:text-4xl mb-1">
                         🏈
                       </div>
                     )}
