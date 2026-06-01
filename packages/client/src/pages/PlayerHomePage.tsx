@@ -307,7 +307,7 @@ export default function PlayerHomePage() {
                 <div className="flex items-end justify-around h-48 gap-2">
                   {leaderboardData.map((team, idx) => {
                     const maxPoints = Math.max(...leaderboardData.map(d => d.totalPoints), 1);
-                    const barHeight = team.totalPoints > 0 ? Math.round((team.totalPoints / maxPoints) * 100) : 0;
+                    const barHeight = team.totalPoints > 0 ? Math.max(Math.round((team.totalPoints / maxPoints) * 100), 30) : 0;
                     return (
                       <div key={idx} className="flex flex-col items-center flex-1">
                         <span className="text-xs text-sand-500 mb-1">{team.totalPoints}</span>
