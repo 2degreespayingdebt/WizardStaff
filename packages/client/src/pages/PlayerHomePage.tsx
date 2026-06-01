@@ -112,6 +112,7 @@ export default function PlayerHomePage() {
         api.getLeaderboard(leagueId, seasonId),
         api.getTeamRosters(leagueId, seasonId)
       ]);
+      console.log('Leaderboard API response:', leaderData);
       setLeaderboardData(leaderData);
       setTeamRosters(rosterData);
     } catch (error) {
