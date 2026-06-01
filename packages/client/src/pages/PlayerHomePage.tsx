@@ -108,11 +108,13 @@ export default function PlayerHomePage() {
     setLeaderboardLoading(true);
     setRosterLoading(true);
     try {
+      console.log('Loading leaderboard with leagueId:', leagueId, 'seasonId:', seasonId);
       const [leaderData, rosterData] = await Promise.all([
         api.getLeaderboard(leagueId, seasonId),
         api.getTeamRosters(leagueId, seasonId)
       ]);
-      console.log('Leaderboard API response:', leaderData);
+      console.log('Leaderboard raw response:', leaderData);
+      console.log('Leaderboard API response:', JSON.stringify(leaderData));
       setLeaderboardData(leaderData);
       setTeamRosters(rosterData);
     } catch (error) {
