@@ -45,9 +45,16 @@ export default function Dashboard() {
               <Link to="/leagues" className="text-sand-500 hover:text-white">
                 Leagues
               </Link>
-              <Link to="/players" className="text-white hover:text-sand-500">
-                Players
-              </Link>
+              {activeLeagues.length > 0 && (
+                <Link to={`/players?league=${activeLeagues[0].id}`} className="text-white hover:text-sand-500">
+                  Players
+                </Link>
+              )}
+              {activeLeagues.length === 0 && (
+                <Link to="/players" className="text-white hover:text-sand-500">
+                  Players
+                </Link>
+              )}
               <Link to="/draft" className="text-white hover:text-sand-500">
                 Draft Room
               </Link>

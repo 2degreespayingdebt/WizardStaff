@@ -1,4 +1,4 @@
-import { query, getClient } from '../config/db.js';
+import { query, getClient, pool } from '../config/db.js';
 
 export interface Season {
   id: string;
@@ -207,5 +207,41 @@ function mapSeasonTeam(row: unknown): SeasonTeam {
 }
 
 export async function deleteSeason(seasonId: string): Promise<void> {
-  await query('DELETE FROM seasons WHERE id = $1', [seasonId]);
+  // Delete in order: draft_picks → roster_slots → season_teams → drafts → player_points → seasons
+  // (using client for transaction)
+  const client = (await pool.connect());
+  try {
+    await client.query('BEGIN');
+    
+    // Delete draft picks for this season's drafts
+    await client.query(`
+      DELETE FROM draft_picks 
+      WHERE draft_id IN (SELECT id FROM drafts WHERE season_id = $1)
+    `, [seasonId]);
+    
+    // Delete roster slots for season teams
+    await client.query(`
+      DELETE FROM roster_slots 
+      WHERE team_id IN (SELECT team_id FROM season_teams WHERE season_id = $1)
+    `, [seasonId]);
+    
+    // Delete season teams (this removes team rosters and drink counts)
+    await client.query('DELETE FROM season_teams WHERE season_id = $1', [seasonId]);
+    
+    // Delete drafts for this season
+    await client.query('DELETE FROM drafts WHERE season_id = $1', [seasonId]);
+    
+    // Delete player points for this season
+    await client.query('DELETE FROM player_points WHERE season_id = $1', [seasonId]);
+    
+    // Finally delete the season
+    await client.query('DELETE FROM seasons WHERE id = $1', [seasonId]);
+    
+    await client.query('COMMIT');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
 }

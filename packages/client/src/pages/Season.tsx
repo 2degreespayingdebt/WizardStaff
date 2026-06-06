@@ -330,7 +330,7 @@ export default function SeasonPage() {
                     <span className="text-sand-500 font-bold w-6">#{idx + 1}</span>
                     {st.avatarUrl ? (
                       <img
-                        src={'http://localhost:3001' + st.avatarUrl}
+                        src={st.avatarUrl}
                         alt={st.teamName}
                         className="w-16 h-16 rounded-full object-cover"
                       />
@@ -366,7 +366,7 @@ export default function SeasonPage() {
                 >
                   {(pick as any).playerImage || (pick as any).player_image ? (
                     <img
-                      src={'http://localhost:3001' + ((pick as any).playerImage || (pick as any).player_image)}
+                      src={((pick as any).playerImage || (pick as any).player_image)}
                       alt={pick.playerName}
                       className="w-16 h-16 rounded-full object-cover mb-2"
                     />

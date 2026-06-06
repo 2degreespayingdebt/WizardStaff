@@ -424,6 +424,7 @@ app.get("/api/team-rosters", optionalAuth, async (req, res) => {
     const result = await query(
       `SELECT 
         t.name as team_name,
+        t.avatar_url as team_avatar,
         p.id as player_id,
         p.name as player_name,
         p.profile_image as player_avatar,
@@ -455,12 +456,61 @@ app.get("/api/team-rosters", optionalAuth, async (req, res) => {
     
     const rosterData = Array.from(teamMap.entries()).map(([teamName, players]) => ({
       teamName,
+      teamAvatar: result.rows.find(r => r.team_name === teamName)?.team_avatar,
       players
     }));
     
     res.json(rosterData);
   } catch (error) {
     console.error('Get team rosters error:', error);
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+// Get players for a specific season (from roster_slots)
+app.get("/api/season-players", optionalAuth, async (req, res) => {
+  try {
+    const leagueId = req.query.league_id as string;
+    const seasonId = req.query.season_id as string;
+    
+    if (!leagueId || !seasonId) {
+      return res.status(400).json({ error: 'Missing league_id or season_id' });
+    }
+    
+    // Get players who are on a team roster for this season
+    const result = await query(
+      `SELECT DISTINCT 
+        p.id,
+        p.name,
+        p.position,
+        p.team,
+        p.status,
+        p.projected_points,
+        p.adp,
+        p.profile_image,
+        p.image_data,
+        p.description,
+        p.created_at,
+        t.name as team_name,
+        COALESCE(pp.points, 0) as points
+       FROM roster_slots rs
+       JOIN players p ON p.id = rs.player_id
+       JOIN teams t ON t.id = rs.team_id
+       LEFT JOIN player_points pp ON pp.player_id = p.id AND pp.league_id = $1 AND pp.season_id = $2
+       WHERE rs.league_id = $1 AND rs.season_id = $2
+       ORDER BY p.name`,
+      [leagueId, seasonId]
+    );
+    
+    // Convert image_data to base64 if present
+    const players = result.rows.map(p => ({
+      ...p,
+      imageData: p.image_data ? Buffer.from(p.image_data).toString('base64') : null
+    }));
+    
+    res.json(players);
+  } catch (error) {
+    console.error('Get season players error:', error);
     res.status(500).json({ error: (error as Error).message });
   }
 });

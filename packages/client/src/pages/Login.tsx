@@ -43,7 +43,7 @@ export default function Login() {
   };
 
   const handleTeamLeadClick = () => {
-    handleLogin('teamLead', '/');
+    handleLogin('teamLead', '/select-player');
   };
 
   const handlePlayerSubmit = (e: React.FormEvent) => {

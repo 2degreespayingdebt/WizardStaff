@@ -103,6 +103,17 @@ export default function SelectPlayer() {
         <div className="max-w-md mx-auto px-2 py-2 flex items-center justify-between">
           <h1 className="text-sm font-bold" style={{ color: '#D4A574' }}>🍺 WizardStaff</h1>
           <button 
+            onClick={() => {
+              if (selectedLeagueId && selectedSeasonId) {
+                navigate(`/player?league=${selectedLeagueId}&seasonId=${selectedSeasonId}&password=${password}`);
+              }
+            }}
+            disabled={!selectedLeagueId || !selectedSeasonId}
+            className="text-sand-500 hover:text-white active:text-sand-400 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Leaderboard
+          </button>
+          <button 
             onClick={() => { logout(); window.location.href = '/login'; }} 
             className="btn-secondary text-xs px-2 py-1"
           >
@@ -169,7 +180,7 @@ export default function SelectPlayer() {
                   >
                     {(pick as any).playerImage || (pick as any).player_image ? (
                       <img
-                        src={'http://localhost:3001' + ((pick as any).playerImage || (pick as any).player_image)}
+                        src={((pick as any).playerImage || (pick as any).player_image)}
                         alt={pick.playerName}
                         className="w-[80px] h-[100px] sm:w-[120px] sm:h-[150px] rounded-full object-cover object-center mb-1"
                       />
@@ -197,7 +208,7 @@ export default function SelectPlayer() {
               {/* Close X button */}
               <button
                 onClick={() => setSelectedPlayer(null)}
-                className="absolute top-2 right-2 text-sand-500 hover:text-white text-xl font-bold w-8 h-8 flex items-center justify-center"
+                className="absolute top-2 right-2 text-sand-500 hover:text-white active:text-sand-400 text-xl font-bold w-8 h-8 flex items-center justify-center"
               >
                 ✕
               </button>
@@ -206,7 +217,7 @@ export default function SelectPlayer() {
               <div className="flex flex-col items-center mb-4">
                 {(selectedPlayer as any).playerImage || (selectedPlayer as any).player_image ? (
                   <img
-                    src={'http://localhost:3001' + ((selectedPlayer as any).playerImage || (selectedPlayer as any).player_image)}
+                    src={((selectedPlayer as any).playerImage || (selectedPlayer as any).player_image)}
                     alt={selectedPlayer.playerName}
                     className="w-24 h-24 rounded-full object-cover mb-2"
                   />

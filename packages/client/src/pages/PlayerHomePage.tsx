@@ -21,12 +21,13 @@ export default function PlayerHomePage() {
   const [leaderboardData, setLeaderboardData] = useState<{ teamName: string; totalPoints: number }[]>([]);
   const [leaderboardLoading, setLeaderboardLoading] = useState(false);
   const [expandedTeams, setExpandedTeams] = useState<Set<string>>(new Set());
-  const [teamRosters, setTeamRosters] = useState<{ teamName: string; players: { playerId: string; playerName: string; points: number; avatarUrl: string }[] }[]>([]);
+  const [teamRosters, setTeamRosters] = useState<{ teamName: string; teamAvatar?: string; players: { playerId: string; playerName: string; points: number; avatarUrl: string }[] }[]>([]);
   const [rosterLoading, setRosterLoading] = useState(false);
   const [allPlayers, setAllPlayers] = useState<Player[]>([]);
   const [playersLoading, setPlayersLoading] = useState(false);
   const [authorized, setAuthorized] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showToast, setShowToast] = useState(false);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -79,6 +80,7 @@ export default function PlayerHomePage() {
     setCount(newCount);
     if (authorized && leagueId && seasonId && playerId) {
       await api.updatePlayerPoints(leagueId, seasonId, playerId, newCount);
+      showToastMessage();
     }
   };
 
@@ -87,19 +89,35 @@ export default function PlayerHomePage() {
     setCount(newCount);
     if (authorized && leagueId && seasonId && playerId) {
       await api.updatePlayerPoints(leagueId, seasonId, playerId, newCount);
+      showToastMessage();
     }
   };
 
+  const showToastMessage = () => {
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 2000);
+  };
+
   const loadAllPlayers = async () => {
-    if (allPlayers.length > 0) return;
+    if (allPlayers.length > 0) {
+      setShowPlayersModal(true);
+      return;
+    }
     setPlayersLoading(true);
     try {
+      console.log('Loading all players...');
       const players = await api.getPlayers();
-      setAllPlayers(players.sort((a, b) => a.name.localeCompare(b.name)));
+      console.log('Loaded players:', players.length);
+      if (players && players.length > 0) {
+        setAllPlayers(players.sort((a, b) => a.name.localeCompare(b.name)));
+      } else {
+        console.log('No players returned from API');
+      }
     } catch (error) {
       console.error('Failed to load players:', error);
     } finally {
       setPlayersLoading(false);
+      setShowPlayersModal(true);
     }
   };
 
@@ -159,7 +177,7 @@ export default function PlayerHomePage() {
           <div className="absolute right-1">
             <button onClick={() => setShowDropdown(!showDropdown)} className="flex items-center">
               {player?.profileImage || player?.profile_image ? (
-                <img src={'http://localhost:3001' + (player.profileImage || player.profile_image)} alt={player?.name} className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover" />
+                <img src={player.profileImage || player.profile_image} alt={player?.name} className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover" />
               ) : (
                 <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-ocean-700 flex items-center justify-center">🏈</div>
               )}
@@ -186,7 +204,7 @@ export default function PlayerHomePage() {
       <main className="max-w-md mx-auto px-3 py-8">
         <div className="flex flex-col items-center">
           {player?.profileImage || player?.profile_image ? (
-            <img src={'http://localhost:3001' + (player.profileImage || player.profile_image)} alt={player.name} className="w-[240px] h-[300px] rounded-full object-cover mb-4" />
+            <img src={player.profileImage || player.profile_image} alt={player.name} className="w-[240px] h-[300px] rounded-full object-cover mb-4" />
           ) : (
             <div className="w-[240px] h-[300px] rounded-full bg-ocean-700 flex items-center justify-center text-6xl mb-4">🏈</div>
           )}
@@ -210,8 +228,9 @@ export default function PlayerHomePage() {
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <div className="bg-ocean-900 rounded-lg w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col">
             <div className="flex items-center justify-between p-1.5 border-b border-ocean-700">
+              <div></div>
               <h2 className="text-lg font-bold">Players</h2>
-              <button onClick={() => setShowPlayersModal(false)} className="text-sand-500 hover:text-white text-xl font-bold w-8 h-8 flex items-center justify-center">
+              <button onClick={() => setShowPlayersModal(false)} className="text-sand-500 hover:text-white active:text-sand-400 text-xl font-bold w-8 h-8 flex items-center justify-center">
                 ✕
               </button>
             </div>
@@ -234,7 +253,7 @@ export default function PlayerHomePage() {
                     setSelectedPlayerInModal(p);
                   }} className="flex flex-col items-center p-2 bg-ocean-800 rounded-lg hover:bg-ocean-700">
                       {p.profileImage || p.profile_image ? (
-                        <img src={'http://localhost:3001' + (p.profileImage || p.profile_image)} alt={p.name} className="w-24 h-24 rounded-full object-cover mb-1" />
+                        <img src={p.profileImage || p.profile_image} alt={p.name} className="w-24 h-24 rounded-full object-cover mb-1" />
                       ) : (
                         <div className="w-24 h-24 rounded-full bg-ocean-700 flex items-center justify-center mb-1">🏈</div>
                       )}
@@ -254,14 +273,14 @@ export default function PlayerHomePage() {
           <div className="bg-ocean-900 rounded-lg w-full max-w-md h-[80vh] flex flex-col">
             <div className="flex items-center justify-between p-1.5 border-b border-ocean-700">
               <h2 className="text-lg font-bold">{selectedPlayerInModal.name}</h2>
-              <button onClick={() => setSelectedPlayerInModal(null)} className="text-sand-500 hover:text-white text-xl font-bold w-8 h-8 flex items-center justify-center">
+              <button onClick={() => setSelectedPlayerInModal(null)} className="text-sand-500 hover:text-white active:text-sand-400 text-xl font-bold w-8 h-8 flex items-center justify-center">
                 ✕
               </button>
             </div>
             <div className="p-4 overflow-y-auto flex-1 flex flex-col items-center justify-center">
               <div className="flex flex-col items-center">
                 {selectedPlayerInModal.profileImage || selectedPlayerInModal.profile_image ? (
-                  <img src={'http://localhost:3001' + (selectedPlayerInModal.profileImage || selectedPlayerInModal.profile_image)} alt={selectedPlayerInModal.name} className="h-[60vh] max-h-[240px] rounded-full object-cover mb-4" style={{ width: 'auto', maxWidth: '100%' }} />
+                  <img src={selectedPlayerInModal.profileImage || selectedPlayerInModal.profile_image} alt={selectedPlayerInModal.name} className="h-[60vh] max-h-[240px] rounded-full object-cover mb-4" style={{ width: 'auto', maxWidth: '100%' }} />
                 ) : (
                   <div className="h-[60vh] max-h-[240px] rounded-full bg-ocean-700 flex items-center justify-center text-6xl mb-4">🏈</div>
                 )}
@@ -288,7 +307,7 @@ export default function PlayerHomePage() {
           <div className="bg-ocean-900 rounded-lg w-full max-w-md max-h-[80vh] overflow-y-auto flex flex-col">
             <div className="flex items-center justify-between p-1.5 border-b border-ocean-700">
               <h2 className="text-lg font-bold">{seasonName || 'Leaderboard'}</h2>
-              <button onClick={() => setShowLeaderboardModal(false)} className="text-sand-500 hover:text-white text-xl font-bold w-8 h-8 flex items-center justify-center">
+              <button onClick={() => setShowLeaderboardModal(false)} className="text-sand-500 hover:text-white active:text-sand-400 text-xl font-bold w-8 h-8 flex items-center justify-center">
                 ✕
               </button>
             </div>
@@ -350,8 +369,8 @@ export default function PlayerHomePage() {
                         className="w-full p-3 flex items-center justify-between hover:bg-ocean-800"
                       >
                         <div className="flex items-center gap-2">
-                          {team.players[0]?.avatarUrl ? (
-                            <img src={'http://localhost:3001' + team.players[0].avatarUrl} alt="" className="w-6 h-6 rounded-full object-cover" />
+                          {team.teamAvatar ? (
+                            <img src={team.teamAvatar} alt="" className="w-6 h-6 rounded-full object-cover" />
                           ) : (
                             <div className="w-6 h-6 rounded-full bg-ocean-700 flex items-center justify-center text-xs">👥</div>
                           )}
@@ -377,7 +396,7 @@ export default function PlayerHomePage() {
                             <div key={player.playerId} className="flex flex-col items-center">
                               {player.avatarUrl ? (
                                 <button onClick={() => setSelectedPlayerInModal({ playerId: player.playerId, name: player.playerName, profileImage: player.avatarUrl, points: player.points } as Player)} className="focus:outline-none">
-                                  <img src={'http://localhost:3001' + player.avatarUrl} alt={player.playerName} className="w-10 h-10 rounded-full object-cover mb-1 hover:opacity-80" />
+                                  <img src={player.avatarUrl} alt={player.playerName} className="w-10 h-10 rounded-full object-cover mb-1 hover:opacity-80" />
                                 </button>
                               ) : (
                                 <button onClick={() => setSelectedPlayerInModal({ playerId: player.playerId, name: player.playerName, profileImage: player.avatarUrl, points: player.points } as Player)} className="focus:outline-none">
@@ -396,6 +415,12 @@ export default function PlayerHomePage() {
               </div>
             </div>
           </div>
+        </div>
+      )}
+      {/* Toast notification */}
+      {showToast && (
+        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-sand-600 text-white px-6 py-3 rounded-lg shadow-lg z-50">
+          Leaderboard Updated
         </div>
       )}
     </div>

@@ -296,7 +296,7 @@ export default function Leagues() {
         {showDeleteModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-ocean-800 p-6 rounded-lg max-w-md w-full mx-4 border border-sand-500">
-              <h3 className="text-xl font-bold mb-4">Delete League</h3>
+              <h3 className="text-xl font-bold mb-4 text-center">Delete League</h3>
               <p className="text-sand-500 mb-6">
                 Are you sure you want to delete "{leagueToDelete?.name}"? 
                 <br /><br />

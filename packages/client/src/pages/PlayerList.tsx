@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import type { Player } from '../types';
@@ -14,11 +14,53 @@ export default function PlayerList() {
   const [deleting, setDeleting] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [searchParams] = useSearchParams();
+  const leagueId = searchParams.get('league') || '';
+  const seasonId = searchParams.get('seasonId') || '';
+  const [activeSeason, setActiveSeason] = useState<{ id: string; name: string } | null>(null);
   
   // Always refresh data when page loads
   useEffect(() => {
-    loadPlayers();
+    loadActiveSeason();
   }, []);
+
+  const loadActiveSeason = async () => {
+    if (!leagueId) {
+      // No league in URL, load all players
+      loadPlayers();
+      return;
+    }
+    try {
+      const leagues = await api.getLeagues();
+      const league = leagues.find(l => l.id === leagueId);
+      if (league) {
+        const seasons = await api.getSeasons(leagueId);
+        const active = seasons.find(s => s.isActive);
+        if (active) {
+          setActiveSeason({ id: active.id, name: active.name });
+          loadSeasonPlayers(leagueId, active.id);
+          return;
+        }
+      }
+      loadPlayers();
+    } catch (error) {
+      console.error('Failed to load season:', error);
+      loadPlayers();
+    }
+  };
+
+  const loadSeasonPlayers = async (lid: string, sid: string) => {
+    try {
+      setLoading(true);
+      const data = await api.getSeasonPlayers(lid, sid);
+      setPlayers(data);
+    } catch (error) {
+      console.error('Failed to load season players:', error);
+      loadPlayers();
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadPlayers = async () => {
     try {
@@ -180,7 +222,7 @@ export default function PlayerList() {
         {showDelete && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-ocean-800 p-6 rounded-lg max-w-md w-full mx-4 border border-sand-500">
-              <h3 className="text-xl font-bold mb-4">Delete Player</h3>
+              <h3 className="text-xl font-bold mb-4 text-center">Delete Player</h3>
               <p className="text-sand-500 mb-6">
                 Are you sure you want to delete "{playerToDelete?.name}"? 
                 <br /><br />
@@ -219,7 +261,7 @@ export default function PlayerList() {
             />
             <button
               onClick={() => setShowImageModal(false)}
-              className="absolute top-4 right-4 text-white text-2xl hover:text-sand-500"
+              className="absolute top-4 right-4 text-white hover:text-sand-500 active:text-sand-400 text-2xl"
             >
               ✕
             </button>

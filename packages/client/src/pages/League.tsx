@@ -108,6 +108,9 @@ export default function League() {
   const [seasonName, setSeasonName] = useState('');
   const [selectedSeasonId, setSelectedSeasonId] = useState<string | null>(null);
   const [activeSeason, setActiveSeason] = useState<Season | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [seasonToDelete, setSeasonToDelete] = useState<Season | null>(null);
+  const [deletingSeason, setDeletingSeason] = useState(false);
 
   useEffect(() => {
     if (id) loadData(id);
@@ -244,6 +247,30 @@ export default function League() {
       setError((err as Error).message);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDeleteSeasonClick = (season: Season) => {
+    setSeasonToDelete(season);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDeleteSeason = async () => {
+    if (!seasonToDelete || !id) return;
+    try {
+      setDeletingSeason(true);
+      await api.deleteSeason(seasonToDelete.id);
+      setSeasons(seasons.filter(s => s.id !== seasonToDelete.id));
+      if (activeSeason?.id === seasonToDelete.id) {
+        setActiveSeason(null);
+        setSelectedSeasonId(null);
+      }
+      setShowDeleteModal(false);
+      setSeasonToDelete(null);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setDeletingSeason(false);
     }
   };
 
@@ -545,7 +572,7 @@ export default function League() {
                     <span className="text-sand-500 text-sm">#{index + 1}</span>
                     {team.avatar_url ? (
                       <img
-                        src={'http://localhost:3001' + team.avatar_url}
+                        src={team.avatar_url}
                         alt={team.name}
                         className="w-56 h-72 rounded-full object-cover my-3"
                       />
@@ -634,8 +661,7 @@ export default function League() {
                 {seasons.map((season) => (
                   <div
                     key={season.id}
-                    onClick={() => navigate(`/leagues/${id}/seasons/${season.id}`)}
-                    className={`p-3 bg-ocean-800 rounded cursor-pointer hover:ring-2 hover:ring-sand-500 ${
+                    className={`p-3 bg-ocean-800 rounded border border-ocean-700 hover:border-sand-500 ${
                       season.isActive ? 'border border-sand-500' : ''
                     }`}
                   >
@@ -651,7 +677,7 @@ export default function League() {
                           </span>
                         )}
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 items-center">
                         <Link
                           to={`/leagues/${id}/seasons/${season.id}`}
                           className="text-sm text-sand-500 hover:text-white"
@@ -678,6 +704,17 @@ export default function League() {
                             Activate
                           </button>
                         )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteSeasonClick(season);
+                          }}
+                          disabled={deletingSeason}
+                          className="text-sm text-red-500 hover:text-red-400 hover:bg-red-900/50 hover:rounded px-1"
+                          title="Delete season"
+                        >
+                          🗑️
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -818,6 +855,36 @@ export default function League() {
             )}
           </div>
         )}
+      {/* Delete Season Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-ocean-900 rounded-lg p-6 max-w-sm w-full">
+            <h3 className="text-lg font-bold mb-4 text-center">Delete Season?</h3>
+            <p className="text-sand-500 mb-6">
+              Are you sure you want to delete "{seasonToDelete?.name}"? This will remove all database references to this season including team rosters and drink counts. This action cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setSeasonToDelete(null);
+                }}
+                className="px-4 py-2 bg-ocean-700 hover:bg-ocean-600 rounded"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDeleteSeason}
+                disabled={deletingSeason}
+                className="px-4 py-2 bg-red-600 hover:bg-red-500 rounded disabled:opacity-50"
+              >
+                {deletingSeason ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       </main>
     </div>
   );

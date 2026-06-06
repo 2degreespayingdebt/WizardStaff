@@ -434,6 +434,15 @@ class ApiService {
     });
     return this.request<{ teamName: string; players: { playerId: string; playerName: string; points: number; avatarUrl: string }[] }[]>(`/team-rosters?${params}`);
   }
+
+  // Get players for a specific season
+  async getSeasonPlayers(leagueId: string, seasonId: string): Promise<Player[]> {
+    const params = new URLSearchParams({
+      league_id: leagueId,
+      season_id: seasonId,
+    });
+    return this.request<Player[]>(`/season-players?${params}`);
+  }
 }
 
 export const api = new ApiService();

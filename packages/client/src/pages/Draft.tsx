@@ -668,7 +668,7 @@ export default function Draft() {
               <h3 className="font-bold text-xl">🍺 Drinker Details</h3>
               <button
                 onClick={() => setSelectedPlayer(null)}
-                className="text-sand-500 hover:text-white text-2xl"
+                className="text-sand-500 hover:text-white active:text-sand-400 text-2xl"
               >
                 ✕
               </button>
@@ -754,7 +754,7 @@ export default function Draft() {
               <h3 className="font-bold text-lg">🍺 Drafted Drinker</h3>
               <button
                 onClick={() => setViewingPick(null)}
-                className="text-sand-500 hover:text-white text-2xl"
+                className="text-sand-500 hover:text-white active:text-sand-400 text-2xl"
               >
                 ✕
               </button>
@@ -818,7 +818,7 @@ export default function Draft() {
               <h3 className="font-bold text-lg">🍺 Confirm Draft</h3>
               <button
                 onClick={() => setPendingDraftPlayer(null)}
-                className="text-sand-500 hover:text-white text-xl"
+                className="text-sand-500 hover:text-white active:text-sand-400 text-xl"
               >
                 ✕
               </button>
