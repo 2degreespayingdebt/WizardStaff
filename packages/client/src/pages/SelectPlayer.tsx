@@ -186,7 +186,7 @@ export default function SelectPlayer() {
                       />
                     ) : (
                       <div className="w-[80px] h-[100px] sm:w-[120px] sm:h-[150px] rounded-full bg-ocean-700 flex items-center justify-center text-2xl sm:text-4xl mb-1">
-                        🏈
+                        🧙
                       </div>
                     )}
                     <span className="text-xs font-medium text-center leading-tight">{pick.playerName}</span>
@@ -213,6 +213,13 @@ export default function SelectPlayer() {
                 ✕
               </button>
               
+              {/* Player Name - Centered */}
+              <h3 className="text-xl font-bold text-center mb-4">
+                {(selectedPlayer as any).playerImage || (selectedPlayer as any).player_image 
+                  ? selectedPlayer.playerName 
+                  : 'Wizard Watcher'}
+              </h3>
+              
               {/* Player Avatar */}
               <div className="flex flex-col items-center mb-4">
                 {(selectedPlayer as any).playerImage || (selectedPlayer as any).player_image ? (
@@ -223,10 +230,14 @@ export default function SelectPlayer() {
                   />
                 ) : (
                   <div className="w-24 h-24 rounded-full bg-ocean-700 flex items-center justify-center text-4xl mb-2">
-                    🏈
+                    🧙
                   </div>
                 )}
-                <h3 className="text-lg font-bold text-center">{selectedPlayer.playerName}</h3>
+                <h3 className="text-lg font-bold text-center">
+                  {(selectedPlayer as any).playerImage || (selectedPlayer as any).player_image 
+                    ? selectedPlayer.playerName 
+                    : 'Wizard Watcher'}
+                </h3>
               </div>
               
               {/* Password Input */}

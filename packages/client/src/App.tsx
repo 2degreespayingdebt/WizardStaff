@@ -126,6 +126,14 @@ export default function App() {
             }
           />
           <Route
+            path="/player"
+            element={
+              <ProtectedRoute>
+                <PlayerHomePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/player/:playerId"
             element={
               <ProtectedRoute>

@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell, Label, LabelList } from 'recharts';
 import { api } from '../services/api';
 import type { Player } from '../types';
 
 export default function PlayerHomePage() {
-  const { playerId } = useParams<{ playerId: string }>();
+  const { playerId: paramPlayerId } = useParams<{ playerId: string }>();
   const [searchParams] = useSearchParams();
+  const playerId = paramPlayerId || searchParams.get('playerId') || '';
   const password = searchParams.get('password') || '';
   const leagueId = searchParams.get('league') || '';
   const seasonId = searchParams.get('seasonId') || '';
@@ -50,6 +52,12 @@ export default function PlayerHomePage() {
 
   useEffect(() => {
     if (playerId && password) {
+      loadPlayer(playerId);
+    } else if (!playerId) {
+      // No player selected - still show the page but without authorization
+      setLoading(false);
+    } else if (playerId && !password) {
+      // Player selected but no password - still load player
       loadPlayer(playerId);
     }
   }, [playerId, password]);
@@ -126,13 +134,10 @@ export default function PlayerHomePage() {
     setLeaderboardLoading(true);
     setRosterLoading(true);
     try {
-      console.log('Loading leaderboard with leagueId:', leagueId, 'seasonId:', seasonId);
       const [leaderData, rosterData] = await Promise.all([
         api.getLeaderboard(leagueId, seasonId),
         api.getTeamRosters(leagueId, seasonId)
       ]);
-      console.log('Leaderboard raw response:', leaderData);
-      console.log('Leaderboard API response:', JSON.stringify(leaderData));
       setLeaderboardData(leaderData);
       setTeamRosters(rosterData);
     } catch (error) {
@@ -168,7 +173,14 @@ export default function PlayerHomePage() {
       {/* Header */}
       <header className="bg-ocean-800 border-b border-ocean-700 h-[60px] relative">
         <div className="max-w-md mx-auto px-1 w-full h-full flex items-center justify-between">
-          <button onClick={() => { loadLeaderboard(); setShowLeaderboardModal(true); }} className="text-sand-500 hover:text-white text-sm sm:text-base absolute left-1">
+          <button onClick={() => { 
+            if (leagueId && seasonId) {
+              loadLeaderboard(); 
+              setShowLeaderboardModal(true); 
+            } else {
+              navigate('/select-player');
+            }
+          }} className="text-sand-500 hover:text-white text-sm sm:text-base absolute left-1">
             Leaderboard
           </button>
           <button onClick={() => { loadAllPlayers(); setShowPlayersModal(true); }} className="text-sand-500 hover:text-white text-sm sm:text-base absolute left-1/2 transform -translate-x-1/2">
@@ -306,13 +318,20 @@ export default function PlayerHomePage() {
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <div className="bg-ocean-900 rounded-lg w-full max-w-md max-h-[80vh] overflow-y-auto flex flex-col">
             <div className="flex items-center justify-between p-1.5 border-b border-ocean-700">
+              <div></div>
               <h2 className="text-lg font-bold">{seasonName || 'Leaderboard'}</h2>
               <button onClick={() => setShowLeaderboardModal(false)} className="text-sand-500 hover:text-white active:text-sand-400 text-xl font-bold w-8 h-8 flex items-center justify-center">
                 ✕
               </button>
             </div>
             <div className="p-1 flex items-center justify-between border-b border-ocean-700">
-              <span className="text-sand-500 text-sm">Leaderboard</span>
+              {!playerId ? (
+                <button onClick={() => navigate('/select-player')} className="text-sand-500 hover:text-white text-sm">
+                  ← Back to Select Player
+                </button>
+              ) : (
+                <span className="text-sand-500 text-sm">Leaderboard</span>
+              )}
               <button onClick={loadLeaderboard} className="text-sand-500 hover:text-white text-sm">
                 🔄 Refresh
               </button>
@@ -323,26 +342,15 @@ export default function PlayerHomePage() {
               ) : leaderboardData.length === 0 ? (
                 <p className="text-sand-500 text-center py-8">No data found.</p>
               ) : (
-                <div className="flex items-end justify-around h-48 gap-2">
-                  {leaderboardData.map((team, idx) => {
-                    const maxPoints = Math.max(...leaderboardData.map(d => d.totalPoints), 1);
-                    const barHeight = team.totalPoints > 0 ? Math.max(Math.round((team.totalPoints / maxPoints) * 100), 30) : 0;
-                    return (
-                      <div key={idx} className="flex flex-col items-center flex-1">
-                        <span className="text-xs text-sand-500 mb-1">{team.totalPoints}</span>
-                        <div 
-                          className="w-full rounded-t" 
-                          style={{ 
-                            height: `${barHeight}%`, 
-                            backgroundColor: '#D4A574',
-                            minHeight: team.totalPoints > 0 ? '4px' : '0px'
-                          }}
-                        />
-                        <span className="text-xs mt-1 truncate w-16 text-center">{team.teamName}</span>
-                        </div>
-                    );
-                  })}
-                </div>
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={leaderboardData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <XAxis type="category" dataKey="teamName" tick={{ fill: '#D4A574', fontSize: 12 }} />
+                    <YAxis type="number" tick={{ fill: '#D4A574', fontSize: 12 }} />
+                    <Bar dataKey="totalPoints" radius={[0, 4, 4, 0]} fill="#D4A574">
+                      <LabelList dataKey="totalPoints" position="top" fill="#D4A574" fontSize={12} />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
               )}
             </div>
             
