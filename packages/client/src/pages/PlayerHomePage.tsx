@@ -191,7 +191,7 @@ export default function PlayerHomePage() {
               {player?.profileImage || player?.profile_image ? (
                 <img src={player.profileImage || player.profile_image} alt={player?.name} className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover" />
               ) : (
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-ocean-700 flex items-center justify-center">🏈</div>
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-ocean-700 flex items-center justify-center">🧙‍♂️</div>
               )}
             </button>
             {showDropdown && (
@@ -218,9 +218,9 @@ export default function PlayerHomePage() {
           {player?.profileImage || player?.profile_image ? (
             <img src={player.profileImage || player.profile_image} alt={player.name} className="w-[240px] h-[300px] rounded-full object-cover mb-4" />
           ) : (
-            <div className="w-[240px] h-[300px] rounded-full bg-ocean-700 flex items-center justify-center text-6xl mb-4">🏈</div>
+            <div className="w-[240px] h-[300px] rounded-full bg-ocean-700 flex items-center justify-center text-6xl mb-4">🧙‍♂️</div>
           )}
-          <h1 className="text-3xl font-bold text-center mb-2">{player?.name || 'Unknown Player'}</h1>
+          <h1 className="text-3xl font-bold text-center mb-2">{player?.name || 'Wizard Observer'}</h1>
           {teamName && (
             <div className="bg-ocean-800 px-6 py-3 rounded-lg border border-ocean-700 mb-6">
               <span className="text-sand-500">Team: </span>
@@ -267,7 +267,7 @@ export default function PlayerHomePage() {
                       {p.profileImage || p.profile_image ? (
                         <img src={p.profileImage || p.profile_image} alt={p.name} className="w-24 h-24 rounded-full object-cover mb-1" />
                       ) : (
-                        <div className="w-24 h-24 rounded-full bg-ocean-700 flex items-center justify-center mb-1">🏈</div>
+                        <div className="w-24 h-24 rounded-full bg-ocean-700 flex items-center justify-center mb-1">🧙‍♂️</div>
                       )}
                       <span className="text-sm text-center">{p.name}</span>
                     </button>
@@ -294,7 +294,7 @@ export default function PlayerHomePage() {
                 {selectedPlayerInModal.profileImage || selectedPlayerInModal.profile_image ? (
                   <img src={selectedPlayerInModal.profileImage || selectedPlayerInModal.profile_image} alt={selectedPlayerInModal.name} className="h-[60vh] max-h-[240px] rounded-full object-cover mb-4" style={{ width: 'auto', maxWidth: '100%' }} />
                 ) : (
-                  <div className="h-[60vh] max-h-[240px] rounded-full bg-ocean-700 flex items-center justify-center text-6xl mb-4">🏈</div>
+                  <div className="h-[60vh] max-h-[240px] rounded-full bg-ocean-700 flex items-center justify-center text-6xl mb-4">🧙‍♂️</div>
                 )}
                 <div className="flex gap-4">
                   <div className="bg-ocean-800 rounded px-3 py-1 border border-sand-700">
@@ -408,7 +408,7 @@ export default function PlayerHomePage() {
                                 </button>
                               ) : (
                                 <button onClick={() => setSelectedPlayerInModal({ playerId: player.playerId, name: player.playerName, profileImage: player.avatarUrl, points: player.points } as Player)} className="focus:outline-none">
-                                  <div className="w-10 h-10 rounded-full bg-ocean-700 flex items-center justify-center mb-1">🏈</div>
+                                  <div className="w-10 h-10 rounded-full bg-ocean-700 flex items-center justify-center mb-1">🧙‍♂️</div>
                                 </button>
                               )}
                               <span className="text-xs text-center">{player.playerName}</span>

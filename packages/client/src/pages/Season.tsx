@@ -336,7 +336,7 @@ export default function SeasonPage() {
                       />
                     ) : (
                       <div className="w-16 h-16 rounded-full bg-ocean-700 flex items-center justify-center text-xl">
-                        🏈
+                        🧙‍♂️
                       </div>
                     )}
                     <span className="font-medium">{st.teamName}</span>
@@ -372,7 +372,7 @@ export default function SeasonPage() {
                     />
                   ) : (
                     <div className="w-16 h-16 rounded-full bg-ocean-700 flex items-center justify-center text-2xl mb-2">
-                      🏈
+                      🧙‍♂️
                     </div>
                   )}
                   <span className="text-sm font-medium text-center">{pick.playerName}</span>

@@ -578,7 +578,7 @@ export default function League() {
                       />
                     ) : (
                       <div className="w-56 h-72 rounded-full bg-ocean-700 flex items-center justify-center my-3">
-                        🏈
+                        🧙‍♂️
                       </div>
                     )}
                     <p className="font-medium text-center">{team.name}</p>
